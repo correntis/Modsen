@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  library-storage:
+    container_name: library-storage
+    image: postgres:17beta2-alpine3.20
+    environment:
+      - POSTGRES_DB=librarydb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432" 
