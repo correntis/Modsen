@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Library.DataAccess;
+using Library.Core.Abstraction;
+using Library.DataAccess.Repositories;
+using Library.Core.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -19,6 +22,9 @@ services.AddDbContext<LibraryDbContext>(options =>
 {
     options.UseNpgsql(configuration.GetConnectionString("LibraryConnection"));
 });
+
+services.AddScoped<IBooksRepository, BooksRepository>();
+services.AddScoped<IAuthorsRepository, AuthorsRepository>();
 
 
 var app = builder.Build();

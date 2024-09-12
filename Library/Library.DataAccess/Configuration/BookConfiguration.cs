@@ -1,4 +1,5 @@
-﻿using Library.DataAccess.Entities;
+﻿using Library.Core.Models;
+using Library.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,18 +13,18 @@ namespace Library.DataAccess.Configuration
 
             builder.Property(b => b.ISBN)
                 .IsRequired()
-                .HasMaxLength(13);
+                .HasMaxLength(Book.MAX_ISBN_LENGTH);
 
             builder.Property(b => b.Name)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(Book.MAX_NAME_LENGTH);
 
             builder.Property(b => b.Description)
-                .HasMaxLength(500);
+                .HasMaxLength(Book.MAX_DESCRIPTION_LENGTH);
 
             builder.Property(b => b.Genre)
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(Book.MAX_GENRE_LENGTH);
 
             builder.Property(b => b.TakenAt)
                 .IsRequired();
