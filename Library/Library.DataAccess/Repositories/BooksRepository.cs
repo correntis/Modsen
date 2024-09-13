@@ -1,4 +1,5 @@
-﻿using Library.Core.Abstraction;
+﻿using AutoMapper;
+using Library.Core.Abstractions;
 using Library.Core.Models;
 using Library.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -10,37 +11,22 @@ namespace Library.DataAccess.Repositories
     {
         private readonly LibraryDbContext _context;
         private readonly ILogger<BooksRepository> _logger;
+        private readonly IMapper _mapper;
 
         public BooksRepository(
             LibraryDbContext context,
-            ILogger<BooksRepository> logger
+            ILogger<BooksRepository> logger,
+            IMapper _mapper
             )
         {
             _context = context;
             _logger = logger;
+            this._mapper = _mapper;
         }
 
-        public async Task<Guid> Create(Book book)
+        public async Task<Guid> AddAsync(Book book)
         {
-            var bookEntity = new BookEntity
-            {
-                Id = book.Id,
-                ISBN = book.ISBN,
-                Name = book.Name,
-                Description = book.Description,
-                Genre = book.Genre,
-                TakenAt = book.TakenAt,
-                ReturnBy = book.ReturnBy,
-                ImagePath = book.ImagePath,
-                Authors = book.Authors.Select(authorEntity => new AuthorEntity
-                {
-                    Id = authorEntity.Id,
-                    Name = authorEntity.Name,
-                    Surname = authorEntity.Surname,
-                    Birthday = authorEntity.Birthday,
-                    Country = authorEntity.Country
-                }).ToList()
-            };
+            var bookEntity = _mapper.Map<BookEntity>(book);
 
             _context.Books.Add(bookEntity);
             await _context.SaveChangesAsync();
@@ -48,10 +34,34 @@ namespace Library.DataAccess.Repositories
             return bookEntity.Id;
         }
 
-        public async Task<Guid> Update(Book book)
+        public async Task<Guid> AddAuthorAsync(Guid bookId, Guid authorId)
         {
             var bookEntity = await _context.Books
                 .Include(b => b.Authors)
+                .FirstOrDefaultAsync(b => b.Id == bookId);
+
+            if(bookEntity is null)
+            {
+                return Guid.Empty;
+            }
+
+            var authorEntity = await _context.Authors
+                .FirstOrDefaultAsync(a => a.Id == authorId);
+
+            if(authorEntity is null)
+            {
+                return Guid.Empty;
+            }
+
+            bookEntity.Authors.Add(authorEntity);
+            await _context.SaveChangesAsync();
+
+            return bookEntity.Id;
+        }
+
+        public async Task<Guid> UpdateAsync(Book book)
+        {
+            var bookEntity = await _context.Books
                 .FirstOrDefaultAsync(b => b.Id == book.Id);
 
             if(bookEntity is null)
@@ -67,21 +77,12 @@ namespace Library.DataAccess.Repositories
             bookEntity.ReturnBy = book.ReturnBy;
             bookEntity.ImagePath = book.ImagePath;
 
-            bookEntity.Authors = book.Authors.Select(authorEntity => new AuthorEntity
-            {
-                Id = authorEntity.Id,
-                Name = authorEntity.Name,
-                Surname = authorEntity.Surname,
-                Birthday = authorEntity.Birthday,
-                Country = authorEntity.Country
-            }).ToList();
-
             await _context.SaveChangesAsync();
 
             return bookEntity.Id;
         }
 
-        public async Task<Guid> Issue(Guid id, DateTime returnBy)
+        public async Task<Guid> IssueAsync(Guid id, DateTime returnBy)
         {
 
             var bookEntity = await _context.Books
@@ -100,7 +101,7 @@ namespace Library.DataAccess.Repositories
             return bookEntity.Id;
         }
 
-        public async Task<Guid> Delete(Guid id)
+        public async Task<Guid> DeleteAsync(Guid id)
         {
             var bookEntity = await _context.Books
                 .FirstOrDefaultAsync(b => b.Id == id);
@@ -116,7 +117,31 @@ namespace Library.DataAccess.Repositories
             return id;
         }
 
-        public async Task<Book> Get(Guid id)
+        public async Task<Guid> DeleteAuthorAsync(Guid bookId, Guid authorId)
+        {
+            var bookEntity = await _context.Books
+                .Include(b => b.Authors)
+                .FirstOrDefaultAsync(b => b.Id == bookId);
+
+            if(bookEntity is null)
+            {
+                return Guid.Empty;
+            }
+
+            var authorEntity = bookEntity.Authors.FirstOrDefault(a => a.Id == authorId);
+
+            if(authorEntity is null)
+            {
+                return Guid.Empty;
+            }
+
+            bookEntity.Authors.Remove(authorEntity);
+            await _context.SaveChangesAsync();
+
+            return bookEntity.Id;
+        }
+
+        public async Task<Book> GetAsync(Guid id)
         {
             var bookEntity = await _context.Books
                 .Include(b => b.Authors)
@@ -128,28 +153,10 @@ namespace Library.DataAccess.Repositories
                 return null;
             }
 
-            return new Book
-            {
-                Id = bookEntity.Id,
-                ISBN = bookEntity.ISBN,
-                Name = bookEntity.Name,
-                Description = bookEntity.Description,
-                Genre = bookEntity.Genre,
-                TakenAt = bookEntity.TakenAt,
-                ReturnBy = bookEntity.ReturnBy,
-                ImagePath = bookEntity.ImagePath,
-                Authors = bookEntity.Authors.Select(authorEntity => new Author
-                {
-                    Id = authorEntity.Id,
-                    Name = authorEntity.Name,
-                    Surname = authorEntity.Surname,
-                    Birthday = authorEntity.Birthday,
-                    Country = authorEntity.Country
-                }).ToList()
-            };
+            return _mapper.Map<Book>(bookEntity);
         }
 
-        public async Task<Book> GetByISBN(string isbn)
+        public async Task<Book> GetByIsbnAsync(string isbn)
         {
             var bookEntity = await _context.Books
                 .Include(b => b.Authors)
@@ -161,56 +168,35 @@ namespace Library.DataAccess.Repositories
                 return null;
             }
 
-            return new Book
-            {
-                Id = bookEntity.Id,
-                ISBN = bookEntity.ISBN,
-                Name = bookEntity.Name,
-                Description = bookEntity.Description,
-                Genre = bookEntity.Genre,
-                TakenAt = bookEntity.TakenAt,
-                ReturnBy = bookEntity.ReturnBy,
-                ImagePath = bookEntity.ImagePath,
-                Authors = bookEntity.Authors.Select(authorEntity => new Author
-                {
-                    Id = authorEntity.Id,
-                    Name = authorEntity.Name,
-                    Surname = authorEntity.Surname,
-                    Birthday = authorEntity.Birthday,
-                    Country = authorEntity.Country
-                }).ToList()
-            };
+            return _mapper.Map<Book>(bookEntity);
         }
 
-        public async Task<IEnumerable<Book>> GetAll()
+        public async Task<Book> GetByAuthorAsync(Guid authorId)
+        {
+            var bookEntity = await _context.Books
+                .Include(b => b.Authors)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.Authors.Any(a => a.Id == authorId));
+
+            if(bookEntity is null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<Book>(bookEntity);
+        }
+
+        public async Task<IEnumerable<Book>> GetAllAsync()
         {
             var booksEntities = await _context.Books
                 .Include(b => b.Authors)
                 .AsNoTracking()
                 .ToListAsync();
 
-            return booksEntities.Select(bookEntity => new Book
-            {
-                Id = bookEntity.Id,
-                ISBN = bookEntity.ISBN,
-                Name = bookEntity.Name,
-                Description = bookEntity.Description,
-                Genre = bookEntity.Genre,
-                TakenAt = bookEntity.TakenAt,
-                ReturnBy = bookEntity.ReturnBy,
-                ImagePath = bookEntity.ImagePath,
-                Authors = bookEntity.Authors.Select(authorEntity => new Author
-                {
-                    Id = authorEntity.Id,
-                    Name = authorEntity.Name,
-                    Surname = authorEntity.Surname,
-                    Birthday = authorEntity.Birthday,
-                    Country = authorEntity.Country
-                }).ToList()
-            });
+            return _mapper.Map<List<Book>>(booksEntities);
         }
 
-        public async Task<IEnumerable<Book>> GetPage(int pageIndex, int pageSize)
+        public async Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize)
         {
             var booksEntities = await _context.Books
                 .Include(b => b.Authors)
@@ -219,25 +205,7 @@ namespace Library.DataAccess.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return booksEntities.Select(bookEntity => new Book
-            {
-                Id = bookEntity.Id,
-                ISBN = bookEntity.ISBN,
-                Name = bookEntity.Name,
-                Description = bookEntity.Description,
-                Genre = bookEntity.Genre,
-                TakenAt = bookEntity.TakenAt,
-                ReturnBy = bookEntity.ReturnBy,
-                ImagePath = bookEntity.ImagePath,
-                Authors = bookEntity.Authors.Select(authorEntity => new Author
-                {
-                    Id = authorEntity.Id,
-                    Name = authorEntity.Name,
-                    Surname = authorEntity.Surname,
-                    Birthday = authorEntity.Birthday,
-                    Country = authorEntity.Country
-                }).ToList()
-            });
+            return _mapper.Map<List<Book>>(booksEntities);
         }
     }
 }
