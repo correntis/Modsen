@@ -10,6 +10,8 @@ namespace Library.DataAccess.Configuration
         public void Configure(EntityTypeBuilder<BookEntity> builder)
         {
             builder.HasKey(b => b.Id);
+            builder.Property(b => b.Id)
+                .HasDefaultValueSql("gen_random_uuid()");
 
             builder.Property(b => b.ISBN)
                 .IsRequired()
@@ -36,7 +38,7 @@ namespace Library.DataAccess.Configuration
                 .IsRequired();
 
             builder.HasMany(b => b.Authors)
-                .WithMany(a => a.Books)
+                .WithMany()
                 .UsingEntity(j => j.ToTable("BooksAuthors"));
         }
     }

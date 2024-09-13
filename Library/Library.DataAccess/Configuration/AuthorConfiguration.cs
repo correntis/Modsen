@@ -10,6 +10,8 @@ namespace Library.DataAccess.Configuration
         public void Configure(EntityTypeBuilder<AuthorEntity> builder)
         {
             builder.HasKey(a => a.Id);
+            builder.Property(b => b.Id)
+                   .HasDefaultValueSql("gen_random_uuid()");
 
             builder.Property(a => a.Name)
                 .IsRequired()
