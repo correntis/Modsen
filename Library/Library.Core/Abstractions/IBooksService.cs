@@ -2,7 +2,7 @@
 
 namespace Library.Core.Abstractions
 {
-    public interface IBooksRepository
+    public interface IBooksService
     {
         Task<Guid> AddAsync(Book book);
         Task<Guid> AddAuthorAsync(Guid bookId, Guid authorId);
@@ -13,7 +13,6 @@ namespace Library.Core.Abstractions
         Task<Book> GetByIsbnAsync(string isbn);
         Task<Book> GetByAuthorAsync(Guid authorId);
         Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize);
-        Task<Guid> IssueAsync(Guid id, DateTime returnBy);
         Task<Guid> UpdateAsync(Book book);
     }
 }

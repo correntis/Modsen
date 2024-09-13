@@ -1,8 +1,8 @@
-﻿using Library.Core.Models;
+using Library.Core.Models;
 
 namespace Library.Core.Abstractions
 {
-    public interface IAuthorsRepository
+    public interface IAuthorsService
     {
         Task<Guid> AddAsync(Author author);
         Task<Guid> DeleteAsync(Guid id);
