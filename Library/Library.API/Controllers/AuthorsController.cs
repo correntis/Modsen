@@ -3,6 +3,7 @@ using Library.API.Contracts;
 using Library.Core.Abstractions;
 using Library.Core.Models;
 using Library.DataAccess.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.API.Controllers
@@ -27,6 +28,7 @@ namespace Library.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(AuthorContract authorContract)
         {
             var author = _mapper.Map<Author>(authorContract);
@@ -37,6 +39,7 @@ namespace Library.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, AuthorContract authorContract)
         {
             var author = _mapper.Map<Author>(authorContract);
@@ -48,6 +51,7 @@ namespace Library.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var guid = await _authorsService.DeleteAsync(id);

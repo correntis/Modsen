@@ -2,6 +2,7 @@
 using Library.API.Contracts;
 using Library.Core.Abstractions;
 using Library.Core.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.API.Controllers
@@ -25,7 +26,9 @@ namespace Library.API.Controllers
             _mapper = mapper;
         }
 
+
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Add(BookContract bookContract)
         {
             var book = _mapper.Map<Book>(bookContract);
@@ -35,6 +38,7 @@ namespace Library.API.Controllers
             return Ok(guid);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> AddAuthor(Guid bookId, Guid authorId)
         {
@@ -43,6 +47,7 @@ namespace Library.API.Controllers
             return Ok(guid);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, BookContract bookContract)
         {
@@ -54,6 +59,7 @@ namespace Library.API.Controllers
             return Ok(guid);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -62,6 +68,7 @@ namespace Library.API.Controllers
             return Ok(guid);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> DeleteAuthor(Guid bookId, Guid authorId)
         {

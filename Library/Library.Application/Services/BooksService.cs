@@ -8,7 +8,6 @@ namespace Library.Application.Services
     {
         private readonly IBooksRepository _booksRepository;
         private readonly IMapper _mapper;
-        private readonly IAuthorsService _authorsService;
 
         public BooksService(
             IBooksRepository booksRepository,
