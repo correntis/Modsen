@@ -3,6 +3,7 @@ using System;
 using Library.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Library.DataAccess.Migrations
 {
     [DbContext(typeof(LibraryDbContext))]
-    partial class LibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240914174651_AddUser")]
+    partial class AddUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,37 +150,6 @@ namespace Library.DataAccess.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Library.DataAccess.Entities.UserRoleEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserRoles");
-                });
-
-            modelBuilder.Entity("UserEntityUserRoleEntity", b =>
-                {
-                    b.Property<Guid>("RolesId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserEntityId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("RolesId", "UserEntityId");
-
-                    b.HasIndex("UserEntityId");
-
-                    b.ToTable("UsersRoles", (string)null);
-                });
-
             modelBuilder.Entity("AuthorEntityBookEntity", b =>
                 {
                     b.HasOne("Library.DataAccess.Entities.AuthorEntity", null)
@@ -198,21 +170,6 @@ namespace Library.DataAccess.Migrations
                     b.HasOne("Library.DataAccess.Entities.BookEntity", null)
                         .WithMany()
                         .HasForeignKey("BooksId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Library.DataAccess.Entities.UserEntity", null)
-                        .WithMany()
-                        .HasForeignKey("UserEntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("UserEntityUserRoleEntity", b =>
-                {
-                    b.HasOne("Library.DataAccess.Entities.UserRoleEntity", null)
-                        .WithMany()
-                        .HasForeignKey("RolesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

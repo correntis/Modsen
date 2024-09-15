@@ -8,6 +8,8 @@ namespace Library.DataAccess
     {
         public DbSet<BookEntity> Books { get; set; }
         public DbSet<AuthorEntity> Authors { get; set; }
+        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<UserRoleEntity> UserRoles { get; set; }
 
         public LibraryDbContext(DbContextOptions<LibraryDbContext> options)
             : base(options)
@@ -19,6 +21,8 @@ namespace Library.DataAccess
         {
             modelBuilder.ApplyConfiguration(new BookConfiguration());
             modelBuilder.ApplyConfiguration(new AuthorConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

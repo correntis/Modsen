@@ -16,12 +16,12 @@ namespace Library.DataAccess.Repositories
         public BooksRepository(
             LibraryDbContext context,
             ILogger<BooksRepository> logger,
-            IMapper _mapper
+            IMapper mapper
             )
         {
             _context = context;
             _logger = logger;
-            this._mapper = _mapper;
+            _mapper = mapper;
         }
 
         public async Task<Guid> AddAsync(Book book)
