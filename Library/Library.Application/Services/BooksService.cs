@@ -25,7 +25,6 @@ namespace Library.Application.Services
 
         public async Task<Guid> AddAuthorAsync(Guid bookId, Guid authorId)
         {
-
             return await _booksRepository.AddAuthorAsync(bookId, authorId);
         }
 

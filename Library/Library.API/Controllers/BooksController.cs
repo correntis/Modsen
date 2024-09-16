@@ -14,16 +14,19 @@ namespace Library.API.Controllers
         private readonly ILogger<BooksController> _logger;
         private readonly IBooksService _booksService;
         private readonly IMapper _mapper;
+        private readonly IFileService _fileService;
 
         public BooksController(
             ILogger<BooksController> logger,
             IBooksService booksService,
-            IMapper mapper
+            IMapper mapper,
+            IFileService fileService
             )
         {
             _logger = logger;
             _booksService = booksService;
             _mapper = mapper;
+            _fileService = fileService;
         }
 
 
@@ -32,6 +35,9 @@ namespace Library.API.Controllers
         public async Task<IActionResult> Add(BookContract bookContract)
         {
             var book = _mapper.Map<Book>(bookContract);
+            
+            var imagePath = await _fileService.SaveAsync(bookContract.ImageFile);
+            book.ImagePath = imagePath;
 
             var guid = await _booksService.AddAsync(book);
             

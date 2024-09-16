@@ -5,6 +5,8 @@ using Library.Core.Abstractions;
 using Library.API.Extensions;
 using Library.Application.Services;
 using Library.Core.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Library.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -47,9 +49,22 @@ services.AddScoped<IUsersService, UsersService>();
 services.AddScoped<IAuthService, AuthService>();
 services.AddScoped<ITokenService, TokenService>();
 services.AddScoped<ITokenCacheService, TokenCacheService>();
+services.AddScoped<IFileService, FileService>();
+services.AddScoped<IRefreshTokenHandler, RefreshTokenHandler>();
 
 
 var app = builder.Build();
+
+app.UseCors(options =>
+{
+    options
+        .WithOrigins("http://localhost:4200")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+});
+
+app.AddLibraryStaticFiles();
 
 app.UseSwagger();
 app.UseSwaggerUI();

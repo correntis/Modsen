@@ -56,9 +56,9 @@ namespace Library.Application.Services
             }
 
             var guid = await _usersRepository.AddAsync(user);
-            await _usersRepository.AddRolesAsync(guid, ["User", "Admin"]);
+            await _usersRepository.AddRolesAsync(guid, ["User"]);
 
-            return await CreateTokensAsync(guid, ["User", "Admin"]);
+            return await CreateTokensAsync(guid, ["User"]);
         }
 
         private async Task<UserToken> CreateTokensAsync(Guid userId, List<string> roles)

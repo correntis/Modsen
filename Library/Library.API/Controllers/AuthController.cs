@@ -43,7 +43,7 @@ namespace Library.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(RegisterContract model)
+        public async Task<IActionResult> Login(LoginContract model)
         {
             if(!ModelState.IsValid)
             {

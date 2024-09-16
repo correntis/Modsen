@@ -1,5 +1,6 @@
 ﻿using Library.API.Middleware;
 using Library.Application.Services;
+using Library.Core.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -37,7 +38,7 @@ namespace Library.API.Extensions
 
                                 if(jwtToken.ValidTo < DateTime.UtcNow)
                                 {
-                                    var tokenHandler = context.HttpContext.RequestServices.GetRequiredService<RefreshTokenHandler>();
+                                    var tokenHandler = context.HttpContext.RequestServices.GetRequiredService<IRefreshTokenHandler>();
                                     var newAccessToken = tokenHandler.HandleUpdateAsync(context.HttpContext).Result;
 
                                     if (!string.IsNullOrEmpty(newAccessToken))

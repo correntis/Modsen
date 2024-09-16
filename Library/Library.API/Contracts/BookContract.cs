@@ -10,6 +10,6 @@ namespace Library.API.Contracts
         public string Genre { get; set; }
         public DateTime TakenAt { get; set; }
         public DateTime ReturnBy { get; set; }
-        public string ImagePath { get; set; }
+        public IFormFile ImageFile { get; set; }
     }
 }
