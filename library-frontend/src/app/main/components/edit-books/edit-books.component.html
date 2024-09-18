@@ -1,0 +1,57 @@
+<div *ngIf="book" class="flex h-[100vh] justify-center items-center">
+  <div class="bg-[#e9e8e8] rounded-2xl shadow-lg w-[70vw] h-[auto]">
+    <form>
+
+      <div class="flex flex-row">
+        <div class="flex flex-col mt-5 ">
+          <label class="text-[30px] ml-2" for="name">Image:</label>
+          <input (change)="onFileSelected($event)" class="text-black text-[15px]  mx-2 shadow-sm rounded-[11px] px-2 py-1" type="file" id="name" name="name"/>
+        </div>
+        <div class="h-[100px] w-[100px] flex flex-col items-center justify-center mr-3">
+          <img *ngIf="book.imagePath" [src]="apiResoursec + book.imagePath" alt="Current Image" class="h-[100px] w-[100px] object-contain object-center" />
+        </div>
+      </div>
+
+      <div class="flex flex-col mt-5">
+        <div class="flex flex-row align-baseline">
+          <label class="text-[30px] ml-2" for="authors">Authors:</label>
+          <button (click)="openAddAuthorDialog()" class="mt-2 bg-blue-500 text-white mx-3 mt-[4px] mb-[4px] px-4 py-2 rounded">
+            Add New Author
+          </button>
+        </div>
+        <ng-multiselect-dropdown 
+          [placeholder]="'Click to select book authors . . . .'"
+          [settings]="dropdownSettings"
+          [data]="allAuthors"
+          [(ngModel)]="selectedAuthors"
+          (onSelect)="onItemSelect($event)"
+          (onDeSelect)="onItemDeSelect($event)"
+          name="authors"
+          class="mx-2"
+        >
+        </ng-multiselect-dropdown>
+      </div>
+
+      <div class="flex flex-col mt-5">
+        <label class="text-[30px] ml-2" for="name">Name:</label>
+        <input class="text-black text-[25px]  mx-2 shadow-sm rounded-[11px] px-2 py-1" type="text" id="name" name="name" [(ngModel)]="book.name"/>
+      </div>
+      <div class="flex flex-col mt-5">
+        <label class="text-[30px] ml-2" for="name">ISBN:</label>
+        <input class="text-black text-[25px]  mx-2 shadow-sm rounded-[11px] px-2 py-1" type="text" id="name" name="name" [(ngModel)]="book.isbn"/>
+      </div>
+      <div class="flex flex-col mt-5">
+        <label class="text-[30px] ml-2" for="name">Genre:</label>
+        <input class="text-black text-[25px]  mx-2 shadow-sm rounded-[11px] px-2 py-1" type="text" id="name" name="name" [(ngModel)]="book.genre"/>
+      </div>
+      <div class="flex flex-col mt-5">
+        <label class="text-[30px] ml-2" for="name">Description:</label>
+        <textarea class="text-black text-[25px]  mx-2 shadow-sm rounded-[11px] px-2 py-1" type="text" id="name" name="name" [(ngModel)]="book.description"></textarea>
+      </div>
+
+      <div class="flex flex-row-reverse">
+        <button (click)="save()" class="bg-[#5beb5e] px-[100px] py-5 rounded-xl mx-5 my-7 text-[20px] text-[#3f3f3f]">Apply changes</button>
+      </div>
+    </form>
+  </div>
+</div>

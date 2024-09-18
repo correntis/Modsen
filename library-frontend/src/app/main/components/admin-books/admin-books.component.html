@@ -1,1 +1,51 @@
-<p>admin-books works!</p>
+<div class="flex flex-col">
+    <div class="p-6 bg-green-100 cursor-pointer shadow-md rounded-lg flex items-center justify-center hover:bg-green-200 transition-all duration-300">
+        <button (click)="redirectToEdit(null)" class="text-green-600 hover:text-green-800 text-2xl">
+            <i class="fa fa-plus mr-2"></i> New book
+        </button>
+    </div>
+</div>
+
+
+<div class="py-6">
+    <div class="container mx-auto max-w-6xl">
+      <h1 class="text-center text-gray-500 text-5xl mb-4"></h1>
+  
+      <div class="choose flex justify-end mb-6">
+        <a href="#list-th" class="mr-4 text-gray-500 text-2xl hover:text-gray-700 transition duration-300">
+          <i class="fa fa-th-list"></i>
+        </a>
+        <a href="#large-th" class="text-gray-500 text-2xl hover:text-gray-700 transition duration-300">
+          <i class="fa fa-th-large"></i>
+        </a>
+      </div>
+  
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let book of books" class="relative bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+          
+          <div class="cover mb-4 border-2 border-gray-400 overflow-hidden h-60">
+            <img [src]="'http://localhost:5005/Resources/'+book.imagePath" alt="Book cover" class="w-full h-full object-cover transition-opacity duration-300">
+          </div>
+  
+          <div>
+            <div class="title text-xl font-bold text-gray-900 mb-1">{{ book.name }}<br>
+                <p *ngFor="let author of book.authors" class="author text-sm text-gray-600">{{ author.name}}</p>
+            </div>
+          </div>
+
+          <div class="flex flex-row justify-between mt-5">
+            <div>
+              <button (click)="deleteBook(book.id)" class="bg-[#fa2a00] hover:bg-[#ff3a3a] hover:text-gray-100 hover:scale-[1.02] px-6 py-1 rounded-[50px] text-[19px] text-white font-normal font-[calibri]">Delete</button>
+            </div>
+            <div>
+              <button (click)="redirectToEdit(book)" class="bg-[#f39c12] hover:bg-[#eda03b]  hover:text-gray-100 hover:scale-[1.02] px-8 py-1 rounded-[50px] text-[19px] text-white font-normal font-[calibri]">Edit</button>
+            </div>
+          </div>
+  
+        </div>
+      </div>
+
+    </div>
+  </div>
+  
+  

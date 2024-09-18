@@ -6,10 +6,10 @@ export interface Book {
     name: string;
     description: string;
     genre: string;
-    ISBN: string;
-    returnBy: Date;
-    takenAt: Date;
-    imagePath: string;
+    isbn: string;
+    returnBy?: Date;
+    takenAt?: Date;
+    imagePath?: string;
 
     authors: Author[];
 }

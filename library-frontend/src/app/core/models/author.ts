@@ -6,4 +6,6 @@ export interface Author {
     surname: string;
     birthday: Date;
     country: string;
+
+    fullName?: string;
 }
