@@ -4,6 +4,7 @@ using Library.Core.Abstractions;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Library.API.Controllers
 {
@@ -35,9 +36,12 @@ namespace Library.API.Controllers
         public async Task<IActionResult> Add(BookContract bookContract)
         {
             var book = _mapper.Map<Book>(bookContract);
-            
-            var imagePath = await _fileService.SaveAsync(bookContract.ImageFile);
-            book.ImagePath = imagePath;
+            book.ImagePath = _fileService.DefaultImagePath;
+
+            if(bookContract.ImageFile != null)
+            {
+                book.ImagePath = await _fileService.SaveAsync(bookContract.ImageFile);
+            }
 
             var guid = await _booksService.AddAsync(book);
             
@@ -57,8 +61,27 @@ namespace Library.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, BookContract bookContract)
         {
+            var existingBook = await _booksService.GetAsync(id);
+            if(existingBook == null)
+            {
+                return NotFound();
+            }
+
             var book = _mapper.Map<Book>(bookContract);
             book.Id = id;
+            book.ImagePath = existingBook.ImagePath;
+
+            if(bookContract.ImageFile != null)
+            {
+                if(!string.IsNullOrEmpty(existingBook.ImagePath))
+                {
+                    _fileService.Delete(existingBook.ImagePath);
+                }
+
+                var newImagePath = await _fileService.SaveAsync(bookContract.ImageFile);
+                book.ImagePath = newImagePath;
+            }
+
 
             var guid = await _booksService.UpdateAsync(book);
 

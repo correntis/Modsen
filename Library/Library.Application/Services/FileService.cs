@@ -8,6 +8,7 @@ namespace Library.Application.Services
     {
         private readonly IWebHostEnvironment _environment;
         private string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
+        public string DefaultImagePath => "default_image.jpg";
 
         public FileService(
             IWebHostEnvironment environment
@@ -43,6 +44,12 @@ namespace Library.Application.Services
             {
                 throw new ArgumentNullException(nameof(fileNameWithExtension));
             }
+
+            if (fileNameWithExtension == DefaultImagePath)
+            {
+                return;
+            }
+
             var contentPath = _environment.ContentRootPath;
             var path = Path.Combine(contentPath, $"Uploads", fileNameWithExtension);
 
@@ -50,7 +57,9 @@ namespace Library.Application.Services
             {
                 throw new FileNotFoundException($"Invalid file path");
             }
+
             File.Delete(path);
         }
+
     }
 }
