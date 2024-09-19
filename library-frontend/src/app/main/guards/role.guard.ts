@@ -8,7 +8,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const usersService : UsersService = inject(UsersService);
   const router : Router = inject(Router);
 
-  const user: User | undefined = usersService.getUser();
+  const user: User | undefined = usersService.getCurrentUser();
 
   if (user && user.roles.some((role : UserRole) => role.name === 'Admin')) {
     return true;

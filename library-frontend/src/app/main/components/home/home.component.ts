@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { UsersService } from '../../services/users.service';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
 import { Book } from '../../../core/models/book';
+import { User } from '../../../core/models/user';
 
 @Component({
   selector: 'app-home',
@@ -22,17 +22,19 @@ export class HomeComponent  {
   constructor(
     private usersService: UsersService,
     private booksService: BooksService) {
-
   }
 
   ngOnInit(){
     this.getBooks();
-    console.log("init books", this.books );
   }
 
   isAdmin(): boolean {
-    const user = this.usersService.getUser();
+    const user = this.usersService.getCurrentUser();
     return user?.roles.some(role => role.name === 'Admin') ?? false;
+  }
+
+  getUser(): User | undefined{
+    return this.usersService.getCurrentUser();
   }
 
   getBooks(){
@@ -43,3 +45,4 @@ export class HomeComponent  {
       });
   }
 }
+ 

@@ -6,7 +6,7 @@
 
         <nav class="hidden md:flex space-x-6">
             <ul class="flex space-x-6">
-                <li><a href="#" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Home</a></li>
+                <li><a *ngIf="getUser()" [routerLink]="['/account', getUser()?.id]" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Account</a></li>
                 <li><a href="#" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Books</a></li>
                 <li><a routerLink="/login" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Authors</a></li>
                 <li><a href="#" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Contact</a></li>
@@ -25,8 +25,13 @@
                 </button>
             </div>
 
-            <a href="/login" class="bg-white text-blue-500  px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-200 hover:scale-105 transition duration-300">
+            <a *ngIf="!getUser()" href="/login" class="bg-white text-blue-500  px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-200 hover:scale-105 transition duration-300">
                 Sign In
+            </a>
+
+            
+            <a *ngIf="getUser()" href="/logout" class="bg-white text-blue-500  px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-200 hover:scale-105 transition duration-300">
+                Logout
             </a>
         </div>
     </div>
@@ -34,18 +39,18 @@
 
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-    <div *ngFor="let book of books" class="book-details flex flex-col items-center p-6 bg-white shadow-md rounded-lg">
-        <div class="book-image mb-4">
-            <img [src]="'http://localhost:5005/Resources/'+book.imagePath" alt="{{ book.name }} cover image" 
-                 class="wobject-cover rounded-md shadow-lg">
+    <div *ngFor="let book of books" class="flex flex-col items-center py-6 px-3 bg-[#ffffff] shadow-md rounded-lg ">
+        <div class="mb-4 w-[250px] h-[350px]">
+            <img [src]="'http://localhost:5005/Resources/'+book.imagePath" alt="{{ book.name }} cover image"
+                 class="object-fill rounded-md shadow-lg w-[250px] h-[350px]">
         </div>
-    
-        <div class="book-info text-left">
-            <h2 class="text-xl font-bold mb-2">{{ book.name }}</h2>
-            <p class="text-gray-700"><strong>Genre:</strong> {{ book.genre }}</p>
-            <p class="text-gray-700"><strong>ISBN:</strong> {{ book.isbn }}</p>
-            <p class="text-gray-700 mb-2"><strong>Description:</strong> {{ book.description }}</p>
-        
+        <div class="text-left px-3">
+            <div>
+                <h2 class="text-xl font-bold mb-2">{{ book.name }}</h2>
+                <p class="text-gray-700 text-wrap px-1"><strong>Genre:</strong> {{ book.genre }}</p>
+                <p class="text-gray-700 text-wrap px-1"><strong>ISBN:</strong> {{ book.isbn }}</p>
+            </div>
+
             <div class="mt-4 flex align-baseline justify-center items-center">
                 <h4 class="text-lg font-semibold">Authors:</h4>
                 <ul class="flex">
