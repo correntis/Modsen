@@ -13,6 +13,7 @@ namespace Library.Core.Abstractions
         Task<Book> GetByIsbnAsync(string isbn);
         Task<Book> GetByAuthorAsync(Guid authorId);
         Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize);
+        Task<int> GetAmountAsync();
         Task<Guid> UpdateAsync(Book book);
     }
 }

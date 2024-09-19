@@ -68,5 +68,10 @@ namespace Library.Application.Services
             return await _booksRepository.GetPageAsync(pageIndex, pageSize);
         }
 
+        public async Task<int> GetAmountAsync()
+        {
+            return await _booksRepository.GetAmountAsync();
+        }
+
     }
 }

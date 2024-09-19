@@ -207,5 +207,10 @@ namespace Library.DataAccess.Repositories
 
             return _mapper.Map<List<Book>>(booksEntities);
         }
+
+        public async Task<int> GetAmountAsync()
+        {
+            return await _context.Books.CountAsync();
+        }
     }
 }

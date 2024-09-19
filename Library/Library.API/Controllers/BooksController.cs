@@ -130,12 +130,20 @@ namespace Library.API.Controllers
             return Ok(books);
         }
 
-        [HttpGet("page")]
+        [HttpGet("pages")]
         public async Task<IActionResult> GetPage(int pageIndex, int pageSize)
         {
             var books = await _booksService.GetPageAsync(pageIndex, pageSize);
 
             return Ok(books);
+        }
+
+        [HttpGet("amount")]
+        public async Task<IActionResult> GetBooksAmount()
+        {
+            var amount = await _booksService.GetAmountAsync();
+
+            return Ok(amount);
         }
     }
 }
