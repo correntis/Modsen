@@ -24,10 +24,9 @@ export class AddAuthorDialogComponent {
     private authorsService: AuthorsService
   ) {}
 
-  onSubmit(): void {
+  onSubmit(){
     this.authorsService.add(this.author)
       .subscribe((id) => {
-        console.log("author added", id);
         this.author.id = id;
         this.dialogRef.close(this.author);
       });

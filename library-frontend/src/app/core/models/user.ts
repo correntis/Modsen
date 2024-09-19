@@ -8,7 +8,7 @@ export interface UserRole {
 
 export interface User {
     id: Guid;
-    username: string;
+    userName: string;
     email: string;
     roles: UserRole[];
     books: Book[];

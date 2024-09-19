@@ -20,6 +20,8 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@types/crypto-js": "^4.2.2",
+    "crypto-js": "^4.2.0",
     "guid-typescript": "^1.0.9",
     "ng-multiselect-dropdown": "^1.0.0",
     "rxjs": "~7.8.0",

@@ -73,12 +73,16 @@ export class BooksService {
   }
 
   getPage(pageIndex: number, pageSize: number): Observable<Book[]>{
-    return this.http.get<Book[]>(this.apiName, { 
-      headers: {
+    return this.http.get<Book[]>(this.apiName + "/pages", { 
+      params: {
         pageSize: pageSize.toString(),
         pageIndex: pageIndex.toString()
-      }
+      },
     });
+  }
+
+  getAmount(){
+    return this.http.get<number>(this.apiName + "/amount");
   }
 
   getImageFile(imageName: string): Observable<any>{

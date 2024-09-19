@@ -41,10 +41,8 @@ export class LoginComponent {
     this.authService.login(this.email, this.password)
       .subscribe({
         next: (response) => {
-          console.log(response);
-
           const user: User = JSON.parse(JSON.stringify(response));
-          this.usersService.setUser(user);
+          this.usersService.setCurrentUser(user);
           this.router.navigate(['/home']);
         },
         error: (error) => {
