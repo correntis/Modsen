@@ -86,5 +86,19 @@ namespace Library.API.Controllers
 
             return Ok(guid);
         }
+
+        [HttpGet("{userId}")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> Get(Guid userId)
+        {
+            var user = await _usersRepository.GetAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
+        }
     }
 }
