@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Library.API.Contracts;
 using Library.Core.Abstractions;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Library.API.Controllers
 {
@@ -11,27 +13,35 @@ namespace Library.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IMapper _mapper;
+        private readonly IValidator<RegisterContract> _registerValidator;
+        private readonly IValidator<LoginContract> _loginValidator;
 
         public AuthController(
             IAuthService authService,
-            IMapper mapper
+            IMapper mapper,
+            IValidator<RegisterContract> registerValidator,
+            IValidator<LoginContract> loginValidator
             )
         {
             _authService = authService;
             _mapper = mapper;
+            _registerValidator = registerValidator;
+            _loginValidator = loginValidator;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterContract model)
         {
-            if (!ModelState.IsValid)
+            var validationResult = await _registerValidator.ValidateAsync(model);
+
+            if(!validationResult.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(validationResult.Errors);
             }
 
             var userTokens = await _authService.Register(model.UserName, model.Email, model.Password);
 
-            if (userTokens == null)
+            if(userTokens == null)
             {
                 return StatusCode(500, "Internal Server Error");
             }
@@ -45,9 +55,11 @@ namespace Library.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginContract model)
         {
-            if(!ModelState.IsValid)
+            var validationResult = await _loginValidator.ValidateAsync(model);
+
+            if(!validationResult.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(validationResult.Errors);
             }
 
             var (user, userTokens) = await _authService.Login(model.Email,model.Password);

@@ -19,7 +19,7 @@ namespace Library.Application.Services
 
         public async Task<Guid> AddBookAsync(Guid userId, Guid bookId)
         {
-            return await _usersRepository.AddBookAsync(userId, bookId);
+            return await _usersRepository.AddBookAsync(userId, bookId, DateTime.UtcNow, DateTime.UtcNow.AddDays(7));
         }
 
         public async Task<Guid> AddRolesAsync(Guid userId, string[] rolesNames)

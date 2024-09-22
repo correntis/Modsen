@@ -20,6 +20,8 @@ namespace Library.Application.Services
 
         public async Task<Guid> AddAsync(Book book)
         {
+            book.TakenAt = DateTime.MinValue;
+            book.ReturnBy = DateTime.MinValue;
             return await _booksRepository.AddAsync(book);
         }
 
@@ -63,14 +65,14 @@ namespace Library.Application.Services
             return await _booksRepository.GetAllAsync();
         }
 
-        public async Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize)
+        public async Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize, BooksFilter filter)
         {
-            return await _booksRepository.GetPageAsync(pageIndex, pageSize);
+            return await _booksRepository.GetPageAsync(pageIndex, pageSize, filter);
         }
 
-        public async Task<int> GetAmountAsync()
+        public async Task<int> GetAmountAsync(BooksFilter filter)
         {
-            return await _booksRepository.GetAmountAsync();
+            return await _booksRepository.GetAmountAsync(filter);
         }
 
     }

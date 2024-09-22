@@ -7,6 +7,9 @@ using Library.Application.Services;
 using Library.Core.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Library.API.Middleware;
+using FluentValidation;
+using Library.API.Contracts;
+using Library.API.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -51,6 +54,13 @@ services.AddScoped<ITokenService, TokenService>();
 services.AddScoped<ITokenCacheService, TokenCacheService>();
 services.AddScoped<IFileService, FileService>();
 services.AddScoped<IRefreshTokenHandler, RefreshTokenHandler>();
+services.AddScoped<ExceptionMiddleware>();
+
+services.AddScoped<IValidator<UserContract>, UserValidator>();
+services.AddScoped<IValidator<BookContract>, BookValidator>();
+services.AddScoped<IValidator<AuthorContract>, AuthorValidator>();
+services.AddScoped<IValidator<LoginContract>, LoginValidator>();
+services.AddScoped<IValidator<RegisterContract>, RegisterValidator>();
 
 
 var app = builder.Build();
@@ -73,5 +83,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.Run();

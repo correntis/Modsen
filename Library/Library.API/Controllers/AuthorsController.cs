@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Library.API.Contracts;
 using Library.Core.Abstractions;
 using Library.Core.Models;
-using Library.DataAccess.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,22 +15,32 @@ namespace Library.API.Controllers
         private readonly ILogger<AuthorsController> _logger;
         private readonly IAuthorsService _authorsService;
         private readonly IMapper _mapper;
+        private readonly IValidator<AuthorContract> _authorValidator;
 
         public AuthorsController(
             ILogger<AuthorsController> logger,
             IAuthorsService authorsService,
-            IMapper mapper
+            IMapper mapper,
+            IValidator<AuthorContract> authorValidator
             )
         {
             _logger = logger;
             _authorsService = authorsService;
             _mapper = mapper;
+            _authorValidator = authorValidator;
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(AuthorContract authorContract)
         {
+            var validationResult = await _authorValidator.ValidateAsync(authorContract);
+
+            if(!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var author = _mapper.Map<Author>(authorContract);
 
             var guid = await _authorsService.AddAsync(author);
@@ -42,6 +52,13 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, AuthorContract authorContract)
         {
+            var validationResult = await _authorValidator.ValidateAsync(authorContract);
+
+            if(!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var author = _mapper.Map<Author>(authorContract);
             author.Id = id;
 

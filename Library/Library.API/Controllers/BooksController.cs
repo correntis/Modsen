@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Library.API.Contracts;
+using Library.API.Validation;
 using Library.Core.Abstractions;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -16,18 +18,21 @@ namespace Library.API.Controllers
         private readonly IBooksService _booksService;
         private readonly IMapper _mapper;
         private readonly IFileService _fileService;
+        private readonly IValidator<BookContract> _booksValidator;
 
         public BooksController(
             ILogger<BooksController> logger,
             IBooksService booksService,
             IMapper mapper,
-            IFileService fileService
+            IFileService fileService,
+            IValidator<BookContract> booksValidator
             )
         {
             _logger = logger;
             _booksService = booksService;
             _mapper = mapper;
             _fileService = fileService;
+            _booksValidator = booksValidator;
         }
 
 
@@ -35,6 +40,13 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Add(BookContract bookContract)
         {
+            var validationResult = await _booksValidator.ValidateAsync(bookContract);
+
+            if(!validationResult.IsValid)
+            {
+                return BadRequest(JsonSerializer.Serialize(validationResult.Errors));
+            }
+
             var book = _mapper.Map<Book>(bookContract);
             book.ImagePath = _fileService.DefaultImagePath;
 
@@ -61,6 +73,13 @@ namespace Library.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, BookContract bookContract)
         {
+            var validationResult = await _booksValidator.ValidateAsync(bookContract);
+
+            if(!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var existingBook = await _booksService.GetAsync(id);
             if(existingBook == null)
             {
@@ -131,17 +150,17 @@ namespace Library.API.Controllers
         }
 
         [HttpGet("pages")]
-        public async Task<IActionResult> GetPage(int pageIndex, int pageSize)
+        public async Task<IActionResult> GetPage(int pageIndex, int pageSize, [FromQuery] BooksFilter filter)
         {
-            var books = await _booksService.GetPageAsync(pageIndex, pageSize);
+            var books = await _booksService.GetPageAsync(pageIndex, pageSize, filter);
 
             return Ok(books);
         }
 
         [HttpGet("amount")]
-        public async Task<IActionResult> GetBooksAmount()
+        public async Task<IActionResult> GetBooksAmount([FromQuery] BooksFilter filter)
         {
-            var amount = await _booksService.GetAmountAsync();
+            var amount = await _booksService.GetAmountAsync(filter);
 
             return Ok(amount);
         }

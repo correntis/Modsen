@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Library.API.Contracts;
+using Library.API.Validation;
 using Library.Core.Abstractions;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Library.API.Controllers
 {
@@ -11,23 +14,26 @@ namespace Library.API.Controllers
     [Route("api/v1/users")]
     public class UsersController : ControllerBase
     {
-        private readonly IUsersRepository _usersRepository;
+        private readonly IUsersService _usersService;
         private readonly IMapper _mapper;
+        private readonly IValidator<UserContract> _usersValidator;
 
         public UsersController( 
-            IUsersRepository usersRepository,
-            IMapper mapper
+            IUsersService usersService,
+            IMapper mapper,
+            IValidator<UserContract> usersValidator
             )
         {
-            _usersRepository = usersRepository;
+            _usersService = usersService;
             _mapper = mapper;
+            _usersValidator = usersValidator;
         }
 
-        [HttpPost("{userId}/books/{bookId}")]
+        [HttpPut("{userId}/books/{bookId}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> AddBook(Guid userId, Guid bookId)
         {
-            var guid = await _usersRepository.AddBookAsync(userId, bookId);
+            var guid = await _usersService.AddBookAsync(userId, bookId);
 
             if(guid == Guid.Empty)
             {
@@ -39,17 +45,19 @@ namespace Library.API.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> Update(Guid id, UserContract model)
+        public async Task<IActionResult> Update(Guid id, UserContract userContract)
         {
-            if (!ModelState.IsValid)
+            var validationResult = await _usersValidator.ValidateAsync(userContract);
+
+            if(!validationResult.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(validationResult.Errors);
             }
 
-            var user = _mapper.Map<User>(model);
+            var user = _mapper.Map<User>(userContract);
             user.Id = id;
 
-            var guid = await _usersRepository.UpdateAsync(user);
+            var guid = await _usersService.UpdateAsync(user);
 
             if (guid == Guid.Empty)
             {
@@ -63,7 +71,7 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var guid = await _usersRepository.DeleteAsync(id);
+            var guid = await _usersService.DeleteAsync(id);
 
             if(guid == Guid.Empty)
             {
@@ -77,7 +85,7 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> DeleteBook(Guid userId, Guid bookId)
         {
-            var guid = await _usersRepository.AddBookAsync(userId, bookId);
+            var guid = await _usersService.AddBookAsync(userId, bookId);
 
             if(guid == Guid.Empty)
             {
@@ -91,7 +99,7 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Get(Guid userId)
         {
-            var user = await _usersRepository.GetAsync(userId);
+            var user = await _usersService.GetAsync(userId);
 
             if (user == null)
             {
