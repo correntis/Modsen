@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { Book } from '../../core/models/book';
 import { Observable } from 'rxjs';
 import { Author } from '../../core/models/author';
+import { Filter } from '../../core/models/fitler';
 
 @Injectable({
   providedIn: 'root'
@@ -72,17 +73,26 @@ export class BooksService {
     return this.http.get<Book[]>(this.apiName)
   }
 
-  getPage(pageIndex: number, pageSize: number): Observable<Book[]>{
+  getPage(pageIndex: number, pageSize: number, filter: Filter): Observable<Book[]>{
     return this.http.get<Book[]>(this.apiName + "/pages", { 
       params: {
         pageSize: pageSize.toString(),
-        pageIndex: pageIndex.toString()
+        pageIndex: pageIndex.toString(),
+        name: filter.name,
+        author: filter.author,
+        genre: filter.genre
       },
     });
   }
 
-  getAmount(){
-    return this.http.get<number>(this.apiName + "/amount");
+  getAmount(filter: Filter){
+    return this.http.get<number>(this.apiName + "/amount", {
+      headers: {
+        name: filter.name,
+        author: filter.author,
+        genre: filter.genre
+      }
+    });
   }
 
   getImageFile(imageName: string): Observable<any>{
