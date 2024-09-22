@@ -1,3 +1,6 @@
+<app-header></app-header>
+
+
 <div class="flex flex-col">
     <div class="p-6 bg-green-100 cursor-pointer shadow-md rounded-lg flex items-center justify-center hover:bg-green-200 transition-all duration-300">
         <button (click)="redirectToEdit(null)" class="text-green-600 hover:text-green-800 text-2xl">
@@ -38,10 +41,13 @@
           
           <div>
             <div class="title text-xl font-bold text-gray-900 mb-1">{{ book.name }}<br>
-                <span *ngFor="let author of book.authors" class="author text-sm text-gray-600">{{ author.name + "  "}}</span>
+                <p *ngFor="let author of book.authors" class="author text-sm text-gray-600">{{ author.name + "  " + author.surname + " "}}</p>
             </div>
           </div>
-
+          
+          <div *ngIf="!isMinDate(book.takenAt)">
+              <p>Not avaliable</p>
+          </div>
         </div>
       </div>
 

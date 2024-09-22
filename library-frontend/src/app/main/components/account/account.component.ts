@@ -1,12 +1,13 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common';
 import { Component } from '@angular/core';
 import { User } from '../../../core/models/user';
 import { UsersService } from '../../services/users.service';
+import { HeaderComponent } from '../header/header.component';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HeaderComponent],
   templateUrl: './account.component.html'
 })
 export class AccountComponent {
@@ -15,7 +16,9 @@ export class AccountComponent {
   constructor(private usersService: UsersService){}
 
   ngOnInit(){
-    this.user = this.usersService.getCurrentUser();
-    console.log(this.user);
+    this.usersService.getCurrentUser$()
+      .subscribe(user => {
+        this.user = user;
+      });
   }
 }

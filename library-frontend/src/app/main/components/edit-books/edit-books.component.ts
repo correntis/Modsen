@@ -11,7 +11,7 @@ import { IDropdownSettings } from 'ng-multiselect-dropdown';
 import { AuthorsService } from '../../services/authors.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AddAuthorDialogComponent } from '../add-author-dialog/add-author-dialog.component';
-import { forkJoin, map, mergeMap, Observable } from 'rxjs';
+import { forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-edit-books',
@@ -142,18 +142,29 @@ export class EditBooksComponent {
       this.booksService.deleteAuthor(bookId, author.id)
     );
 
-    return forkJoin([...addAuthors$, ...deleteAuthors$]);
+    const actions$ = [...addAuthors$, ...deleteAuthors$];
+
+    return actions$.length > 0 ? forkJoin(actions$) : of(null);
   }
 
   
   save() {
+    console.log("save");
+    
     if (this.book) {
+      console.log("this.book");
+      
       if (this.isEditMode) {
+
+        console.log("edit mode");
+        
         this.booksService.update(this.book, this.imageChanged ? this.selectedImage : null)
           .pipe(
             mergeMap(() => this.saveAuthors(this.book!.id))
           )
-          .subscribe(() => {
+          .subscribe((id) => {
+            console.log("admin books redirect");
+            
             this.route.navigate(['/admin/books']);
           });
       } else {
@@ -164,6 +175,7 @@ export class EditBooksComponent {
             ))
           )
           .subscribe((id) => {
+            console.log("redirect admin books edit");
             this.route.navigate([`/admin/books/edit/${id}`]);
           });
       }

@@ -1,0 +1,28 @@
+<header class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 shadow-md">
+    <div class="container mx-auto flex justify-between items-center">
+        <div class="text-white font-bold text-2xl">
+            <a href="/home" class="hover:text-gray-200 transition duration-300">BookStore</a>
+        </div>
+
+        <nav class="hidden md:flex space-x-6">
+            <ul class="flex space-x-6">
+
+                <li *ngIf="!user" class="text-red-300">Log in to your account to access your personal account</li>
+
+                <li><a *ngIf="user" [routerLink]="['/account', user!.id]" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Account</a></li>
+                <li *ngIf="user && isAdmin()"><a routerLink="/admin/books" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Admin Books</a></li>
+            </ul>
+        </nav>
+
+        <div class="flex items-center space-x-4">
+            <a *ngIf="!user" href="/login" class="bg-white text-blue-500  px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-200 hover:scale-105 transition duration-300">
+                Sign In
+            </a>
+
+            
+            <button *ngIf="user" (click)="logout()" class="bg-white text-blue-500  px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-200 hover:scale-105 transition duration-300">
+                Logout
+            </button>
+        </div>
+    </div>
+</header>

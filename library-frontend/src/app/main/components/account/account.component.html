@@ -1,37 +1,52 @@
-<div class="bg-gradient-to-br from-purple-400 to-blue-500 p-6 rounded-lg shadow-2xl text-white">
-    <div class="mb-6 border-b border-white pb-4">
-      <h2 class="text-3xl font-bold mb-4">Информация о пользователе</h2>
-      <div class="text-lg space-y-2">
-        <p><strong>Имя:</strong> {{ user?.userName}}</p>
-        <p><strong>Email:</strong> {{ user?.email }}</p>
-      </div>
-    </div>
-  
-    <div class="mt-8">
-      <h3 class="text-2xl font-semibold mb-6">Взятые книги</h3>
-      <div *ngIf="user?.books?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div *ngFor="let book of user?.books" class="bg-white text-gray-800 p-6 rounded-lg shadow-lg transform transition-transform hover:scale-105">
-          <h4 class="text-xl font-bold mb-2">{{ book.name }}</h4>
-          <p class="text-gray-600 mb-4">Автор: <span class="font-medium">{{ book.genre}}</span></p>
-          <p class="text-gray-600 mb-4">Дата взятия: <span class="font-medium">{{ book.takenAt | date }}</span></p>
-          <p class="text-gray-600">Дата возврата: <span class="font-medium">{{ book.returnBy | date }}</span></p>
-          <div class="mt-4">
-            <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md">
-              Подробнее
-            </button>
-          </div>
-        </div>
-      </div>
-  
-      <div *ngIf="user?.books?.length === 0" class="text-gray-300 text-center py-6">
-        Пользователь не взял ни одной книги.
-      </div>
-    </div>
-  
-    <div class="mt-6 flex justify-end">
-      <button class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-        Обновить информацию
-      </button>
+<app-header></app-header>
+
+
+
+<div
+  class="bg-gradient-to-br from-purple-400 to-blue-500 p-6 rounded-lg shadow-2xl text-white"
+>
+<div class="mb-6 border-b border-white pb-4">
+    <h2 class="text-3xl font-bold mb-4">User information</h2>
+    <div class="text-lg space-y-2">
+      <p><strong>UserName:</strong> {{ user?.userName }}</p>
+      <p><strong>Email:</strong> {{ user?.email }}</p>
     </div>
   </div>
-  
+
+  <div class="mt-8">
+    <h3 class="text-2xl font-semibold mb-6">Borowwed books</h3>
+    <div
+      *ngIf="user?.books?.length"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <div
+        *ngFor="let book of user?.books"
+        class="bg-white text-gray-800 p-6 rounded-lg shadow-lg transform transition-transform hover:scale-105"
+      >
+        <h4 class="text-xl font-bold mb-2">{{ book.name }}</h4>
+         <p class="text-gray-600 mb-4">
+          Date of collection:
+          <span class="font-medium">{{ book.takenAt | date }}</span>
+        </p>
+        <p class="text-gray-600">
+          Return date:
+          <span class="font-medium">{{ book.returnBy | date }}</span>
+        </p>
+        <div class="mt-4">
+          <!-- <button
+            class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md"
+          >
+            Подробнее
+          </button> -->
+        </div>
+      </div>
+    </div>
+
+    <div
+      *ngIf="user?.books?.length === 0"
+      class="text-gray-300 text-center py-6"
+    >
+      Пользователь не взял ни одной книги.
+    </div>
+  </div>
+</div>

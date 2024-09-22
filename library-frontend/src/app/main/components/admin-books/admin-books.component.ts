@@ -1,3 +1,4 @@
+import { Author } from './../../../core/models/author';
 import { Guid } from 'guid-typescript';
 import { Book } from '../../../core/models/book';
 import { BooksService } from './../../services/books.service';
@@ -7,12 +8,13 @@ import { Router } from '@angular/router';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
-import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
+import { Filter } from '../../../core/models/fitler';
+import { HeaderComponent } from '../header/header.component';
 
 @Component({
   selector: 'app-admin-books',
   standalone: true,
-  imports: [CommonModule, MatPaginator],
+  imports: [CommonModule, MatPaginator, HeaderComponent],
   templateUrl: './admin-books.component.html',
 })
 export class AdminBooksComponent {
@@ -22,6 +24,11 @@ export class AdminBooksComponent {
   public totalPages = 0;
   public pageSize = 15;
   public pageIndex = 0;
+  public filter: Filter =  {
+    name: "",
+    genre: "",
+    author: ""
+  }
 
   constructor(
     private booksService: BooksService,
@@ -31,7 +38,7 @@ export class AdminBooksComponent {
   }
 
   ngOnInit(){
-    this.booksService.getAmount()
+    this.booksService.getAmount(this.filter)
       .subscribe(amount => {
         this.totalPages = Math.round(amount / this.pageSize);
       });
@@ -39,9 +46,11 @@ export class AdminBooksComponent {
   }
 
   getBooks(){
-    this.booksService.getPage(this.pageIndex, this.pageSize)
+    this.booksService.getPage(this.pageIndex, this.pageSize, this.filter)
       .subscribe(books => {
         this.books = books;
+        console.log("books:", this.books);
+        
       })
   }
 
@@ -68,5 +77,18 @@ export class AdminBooksComponent {
     } else {
       this.router.navigate(["/admin/books/new"])
     }
+  }
+
+  isMinDate(date: Date | string | undefined){
+    if (typeof date === 'string') {
+      date = new Date(date);
+    }
+    
+    let minDate: Date = new Date("0001-01-01T00:00:00"); 
+    
+    if (date instanceof Date) {
+      return date.toISOString() === minDate.toISOString();
+    }
+    return false; 
   }
 }

@@ -1,65 +1,76 @@
-<header class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 shadow-md">
-    <div class="container mx-auto flex justify-between items-center">
-        <div class="text-white font-bold text-2xl">
-            <a href="/" class="hover:text-gray-200 transition duration-300">BookStore</a>
-        </div>
+<app-header></app-header>
 
-        <nav class="hidden md:flex space-x-6">
-            <ul class="flex space-x-6">
-                <li><a *ngIf="getUser()" [routerLink]="['/account', getUser()?.id]" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Account</a></li>
-                <li><a href="#" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Books</a></li>
-                <li><a routerLink="/login" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Authors</a></li>
-                <li><a href="#" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Contact</a></li>
-                <li *ngIf="true"><a routerLink="/admin/books" class="text-white text-[18px] hover:text-gray-300 transition duration-300">Admin Books</a></li>
-            </ul>
-        </nav>
 
-        <div class="flex items-center space-x-4">
-            <div class="relative">
-                <input type="text" placeholder="Search books..." 
-                       class="px-4 py-2 rounded-lg bg-white shadow-md focus:outline-none focus:ring focus:border-indigo-300">
-                <button class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 10-14 0 7 7 0 0014 0z"></path>
-                    </svg>
-                </button>
-            </div>
+<div class="flex flex-row justify-center align-baseline items-baseline mt-5">
+    <div>
+        <input [(ngModel)]="filter.name" (keydown)="onInputKeyDown($event)" type="text" placeholder="Name" 
+                class="w-[250px] px-4 py-2 rounded-lg bg-white shadow-md focus:outline-none focus:ring focus:border-indigo-300">
+   </div>
 
-            <a *ngIf="!getUser()" href="/login" class="bg-white text-blue-500  px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-200 hover:scale-105 transition duration-300">
-                Sign In
-            </a>
-
-            
-            <a *ngIf="getUser()" href="/logout" class="bg-white text-blue-500  px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-200 hover:scale-105 transition duration-300">
-                Logout
-            </a>
-        </div>
+    <div class="ml-5">
+        <input [(ngModel)]="filter.genre" (keydown)="onInputKeyDown($event)" type="text" placeholder="Genre" 
+                class="w-[250px] px-4 py-2 rounded-lg bg-white shadow-md focus:outline-none focus:ring focus:border-indigo-300">
+   </div>
+   <div class="ml-5">
+        <input [(ngModel)]="filter.author" (keydown)="onInputKeyDown($event)" type="text" placeholder="Author" 
+            class="w-[250px] px-4 py-2 rounded-lg bg-white shadow-md focus:outline-none focus:ring focus:border-indigo-300">
     </div>
-</header>
+
+   <div class="bg-[#eeeeee] hover:bg-[#dfdfdf]  ml-3 rounded-xl shadow-2xl">
+    <button (click)="onSearch()" class="text-gray-500 px-8 py-2 hover:text-black flex items-baseline ">
+        
+        <span>Search</span>
+    </button>
+   </div>
+</div>
 
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-    <div *ngFor="let book of books" class="flex flex-col items-center py-6 px-3 bg-[#ffffff] shadow-md rounded-lg ">
-        <div class="mb-4 w-[250px] h-[350px]">
-            <img [src]="'http://localhost:5005/Resources/'+book.imagePath" alt="{{ book.name }} cover image"
-                 class="object-fill rounded-md shadow-lg w-[250px] h-[350px]">
+<div class="flex flex-row flex-wrap gap-5 justify-center mt-5">
+
+     <div *ngIf="books.length === 0" class="w-96 mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+      <p>No matches</p>
+    </div>
+
+    <div [routerLink]="['/books', book.id]" *ngFor="let book of books"
+         class="flex flex-col bg-white shadow-md rounded-lg cursor-pointer hover:scale-[1.01] w-[280px]">
+      <div class="mb-4 w-[280px] h-[350px]">
+        <img [src]="'http://localhost:5005/Resources/' + book.imagePath" 
+             alt="{{ book.name }} cover image" 
+             class="object-fill rounded-md shadow-lg w-full h-full">
+      </div>
+      
+      <div class="px-4 pb-4">
+        <h3 class="text-lg font-bold mb-2 text-center truncate">{{ book.name }}</h3>
+        
+        <p class="text-gray-700 text-sm mb-1"><strong>Genre:</strong> {{ book.genre }}</p>
+        <p class="text-gray-700 text-sm mb-1"><strong>ISBN:</strong> {{ book.isbn }}</p>
+        
+        <div class="mt-4">
+          <h4 class="text-md font-semibold">Authors:</h4>
+          <ul class="list-inside list-disc ml-4">
+            <li *ngFor="let author of book.authors" class="text-gray-600 text-sm">
+              {{ author.name }} {{ author.surname }}
+            </li>
+          </ul>
         </div>
-        <div class="text-left px-3">
-            <div>
-                <h2 class="text-xl font-bold mb-2">{{ book.name }}</h2>
-                <p class="text-gray-700 text-wrap px-1"><strong>Genre:</strong> {{ book.genre }}</p>
-                <p class="text-gray-700 text-wrap px-1"><strong>ISBN:</strong> {{ book.isbn }}</p>
-            </div>
-
-            <div class="mt-4 flex align-baseline justify-center items-center">
-                <h4 class="text-lg font-semibold">Authors:</h4>
-                <ul class="flex">
-                    <li *ngFor="let author of book.authors" class="text-gray-600 text-xl ml-3">{{ author.name }}</li>
-                </ul>
-            </div>
-        </div>
+      </div>
+      
+      <div *ngIf="!isMinDate(book.takenAt)">
+        <p class="text-sm pl-5 ">Not avaliable now</p>
+      </div>
     </div>
 </div>
+  
+
+<div class="flex flex-row align-center justify-center mt-5">
+    <mat-paginator  
+      [length]="totalPages"
+      [pageSize]="pageSize" 
+      (page)="onPageChange($event)">
+    </mat-paginator>
+</div>
+
+
 
   
   
