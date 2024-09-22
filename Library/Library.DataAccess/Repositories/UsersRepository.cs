@@ -35,7 +35,7 @@ namespace Library.DataAccess.Repositories
             return userEntity.Id;
         }
 
-        public async Task<Guid> AddBookAsync(Guid userId, Guid bookId)
+        public async Task<Guid> AddBookAsync(Guid userId, Guid bookId, DateTime takenAt, DateTime returnBy)
         {
             var bookEntity = await _context.Books
                 .FirstOrDefaultAsync(b => b.Id == bookId);
@@ -46,12 +46,16 @@ namespace Library.DataAccess.Repositories
             }
 
             var userEntity = await _context.Users
+                .Include(u => u.Books)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if(userEntity is null)
             {
                 return Guid.Empty;
             }
+
+            bookEntity.TakenAt = takenAt;
+            bookEntity.ReturnBy = returnBy;
 
             userEntity.Books.Add(bookEntity);
             await _context.SaveChangesAsync();
@@ -101,6 +105,7 @@ namespace Library.DataAccess.Repositories
         {
             var userEntity = await _context.Users
                 .Include(u => u.Books)
+                .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             _context.Users.Add(userEntity);
@@ -120,6 +125,7 @@ namespace Library.DataAccess.Repositories
             }
 
             var userEntity = await _context.Users
+                .Include(u => u.Books)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if(userEntity is null)
@@ -137,6 +143,7 @@ namespace Library.DataAccess.Repositories
         {
             var userEntity = await _context.Users
                 .Include(u => u.Books)
+                .Include(u => u.Roles)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == id);
 

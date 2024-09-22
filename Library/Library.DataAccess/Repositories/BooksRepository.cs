@@ -196,21 +196,50 @@ namespace Library.DataAccess.Repositories
             return _mapper.Map<List<Book>>(booksEntities);
         }
 
-        public async Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize)
+        public async Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize, BooksFilter filter)
         {
-            var booksEntities = await _context.Books
-                .Include(b => b.Authors)
-                .AsNoTracking()
+            var query = _context.Books.AsQueryable();
+
+            query = query.Include(b => b.Authors);
+
+            BuildFilteredQuery(ref query, filter);
+
+            query = query.AsNoTracking()
                 .Skip(pageIndex * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                .Take(pageSize);
+
+            var booksEntities = await query.ToListAsync();
 
             return _mapper.Map<List<Book>>(booksEntities);
         }
 
-        public async Task<int> GetAmountAsync()
+        public async Task<int> GetAmountAsync(BooksFilter filter)
         {
-            return await _context.Books.CountAsync();
+            var query = _context.Books.Include(b => b.Authors).AsQueryable();
+
+            BuildFilteredQuery(ref query, filter);
+
+            return await query.CountAsync();
+        }
+
+        private void BuildFilteredQuery(ref IQueryable<BookEntity> query,  BooksFilter filter)
+        {
+            if(!string.IsNullOrEmpty(filter.Author))
+            {
+                query = query.Where(b => b.Authors.Any(a => a.Name.ToLower().Contains(filter.Author.ToLower())));
+            }
+
+            if(!string.IsNullOrEmpty(filter.Name))
+            {
+                query = query.Where(b =>
+                    b.Name.ToLower().Contains(filter.Name.ToLower()) || b.Name.ToLower().Contains(filter.Name.ToLower())
+                    );
+            }
+
+            if(!string.IsNullOrEmpty(filter.Genre))
+            {
+                query = query.Where(b => b.Genre.ToLower().Contains(filter.Genre.ToLower()));
+            }
         }
     }
 }
