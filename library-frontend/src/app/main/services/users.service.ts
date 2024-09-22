@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { User } from './../../core/models/user';
 import { Injectable } from '@angular/core';
 import { Guid } from 'guid-typescript';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import * as crypto from "crypto-js";
 
 
@@ -10,55 +10,44 @@ import * as crypto from "crypto-js";
   providedIn: 'root'
 })
 export class UsersService {
-  private currentUser?: User = undefined;
-  private apiName: string = "http://localhost:5005/api/v1/users"
-  private secretKey: string = "secretKey"; // should be in safe place
+  private currentUserSubject: BehaviorSubject<User | undefined> = new BehaviorSubject<User | undefined>(undefined);
+  public currentUser$: Observable<User | undefined> = this.currentUserSubject.asObservable();
+  private apiName: string = "http://localhost:5005/api/v1/users";
+  private secretKey: string = "secretKey"; // should be in a safe place
 
-  constructor(private http: HttpClient) 
-  {
-    if (!this.currentUser) {
-      const id: string | undefined = this.getCookieId();
-      if(id){
-        this.getUser(this.decryptId(id))
-          .subscribe(user => {
-            this.currentUser = user;
-          });
-      }
+  constructor(private http: HttpClient) {
+    this.loadFromCookies();
+  }
+
+  public loadFromCookies(): void {
+    const id: string | undefined = this.getCookieId();
+    if (id) {
+      this.getUser(this.decryptId(id)).subscribe(user => {
+        this.currentUserSubject.next(user); 
+      });
     }
   }
 
-  public loadFromCookies(){
-    if (!this.currentUser) {
-      const id: string | undefined = this.getCookieId();
-      if(id){
-        this.getUser(this.decryptId(id))
-          .subscribe(user => {
-            this.currentUser = user;
-          });
-      }
-    }
+  public getUser(id: Guid): Observable<User> {
+    return this.http.get<User>(this.apiName + `/${id}`, { withCredentials: true });
   }
 
-  public getUser(id: Guid): Observable<User>{
-    return this.http.get<User>(this.apiName + `/${id}`, {withCredentials: true})
+  public addBook(userId: Guid, bookId: Guid){
+    return this.http.put<Guid>(this.apiName + `/${userId}/books/${bookId}`, null, {withCredentials: true})
   }
 
-  public setCurrentUser(user: User) : void{
-    this.currentUser = user;
-    this.setCookieId(this.currentUser.id);
+  public setCurrentUser(user: User): void {
+    this.currentUserSubject.next(user);
+    this.setCookieId(user.id);
   }
 
-  public getCurrentUser() : User | undefined{
-    return this.currentUser;
+  public getCurrentUser$(): Observable<User | undefined> {
+    return this.currentUser$;
   }
 
-  public logout() : void{
-    this.currentUser = undefined;
+  public logout(): void {
+    this.currentUserSubject.next(undefined);
     this.deleteCookieId();
-  }
-
-  public isLoggedIn() : boolean{
-    return !!this.currentUser;
   }
 
   private setCookieId(userId: Guid){
