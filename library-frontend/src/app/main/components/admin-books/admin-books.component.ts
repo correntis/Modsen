@@ -22,7 +22,7 @@ export class AdminBooksComponent {
   public books: Book[] = [];
 
   public totalPages = 0;
-  public pageSize = 15;
+  public pageSize = 6;
   public pageIndex = 0;
   public filter: Filter =  {
     name: "",
@@ -40,7 +40,7 @@ export class AdminBooksComponent {
   ngOnInit(){
     this.booksService.getAmount(this.filter)
       .subscribe(amount => {
-        this.totalPages = Math.round(amount / this.pageSize);
+        this.totalPages = Math.round(amount );
       });
     this.getBooks();
   }

@@ -1,0 +1,18 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+
+COPY ["Library.API/Library.API.csproj", "Library.API/"]
+COPY ["Library.DataAccess/Library.DataAccess.csproj", "Library.DataAccess/"]
+
+RUN dotnet restore "Library.API/Library.API.csproj"
+
+RUN dotnet tool install --global dotnet-ef
+
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+COPY . .
+
+WORKDIR "/src/Library.API"
+
+ENTRYPOINT ["dotnet", "ef", "database", "update", "-p", "/src/Library.DataAccess/Library.DataAccess.csproj"]

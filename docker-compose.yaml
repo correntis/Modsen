@@ -1,6 +1,21 @@
 version: "3.8"
 
 services:
+  migrations:
+    container_name: migrations
+    build:
+      context: ./Library
+      dockerfile: ./Library.API/Dockerfile.migrate
+    environment:
+      - POSTGRES_DB=librarydb
+      - POSTGRES_USER=postgres
+      - POSTGRES_HOST=library-storage
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_PORT=5432
+    depends_on:
+      - library-storage
+
+ 
   library-storage:
     container_name: library-storage
     image: postgres:17beta2-alpine3.20
@@ -16,3 +31,36 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+  
+  library-api:
+    container_name: library-api
+    build:
+      context: ./Library
+      dockerfile: ./Library.API/Dockerfile
+    environment:
+      - TOKENS_STORAGE_HOST=library-tokens-cache
+      - TOKENS_STORAGE_PORT=6379
+      - POSTGRES_DB=librarydb
+      - POSTGRES_USER=postgres
+      - POSTGRES_HOST=library-storage
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_PORT=5432
+      - SEED_ON_START=true
+      - IS_MIGRATION=false
+    ports:
+      - "5000:8080"
+    depends_on:
+      - migrations
+      - library-storage
+      - library-tokens-cache
+
+  library-web:
+    container_name: library-web
+    build: 
+      context: ./library-frontend
+      dockerfile: ./Dockerfile
+    ports:
+      - "4200:4200"
+    depends_on:
+      - library-api
+

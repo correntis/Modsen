@@ -36,11 +36,12 @@
           </div>
 
           <div class="cover mb-4 border-2 border-gray-400 overflow-hidden h-60">
-            <img [src]="'http://localhost:5005/Resources/'+book.imagePath" alt="Book cover" class="w-full h-full object-cover transition-opacity duration-300">
+            <img [src]="'http://localhost:5000/Resources/'+book.imagePath" alt="Book cover" class="w-full h-full object-cover transition-opacity duration-300">
           </div>
           
           <div>
-            <div class="title text-xl font-bold text-gray-900 mb-1">{{ book.name }}<br>
+            <h3 class="text-lg font-bold mb-2 text-center truncate">{{ book.name }}</h3>
+            <div class="title text-xl font-bold text-gray-900 mb-1">
                 <p *ngFor="let author of book.authors" class="author text-sm text-gray-600">{{ author.name + "  " + author.surname + " "}}</p>
             </div>
           </div>

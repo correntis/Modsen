@@ -159,6 +159,7 @@ namespace Library.DataAccess.Repositories
         {
             var userEntity = await _context.Users
                 .Include(u => u.Roles)
+                .Include(u => u.Books)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email);
 

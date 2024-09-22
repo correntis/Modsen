@@ -17,9 +17,10 @@ namespace Library.API.Extensions
 
             app.UseStaticFiles(new StaticFileOptions()
             {
-                FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "Uploads")),
+                FileProvider = new PhysicalFileProvider(path),
                 RequestPath = "/Resources"
             });
+
         }
     }
 }

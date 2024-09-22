@@ -12,7 +12,7 @@ import * as crypto from "crypto-js";
 export class UsersService {
   private currentUserSubject: BehaviorSubject<User | undefined> = new BehaviorSubject<User | undefined>(undefined);
   public currentUser$: Observable<User | undefined> = this.currentUserSubject.asObservable();
-  private apiName: string = "http://localhost:5005/api/v1/users";
+  private apiName: string = "http://localhost:5000/api/v1/users";
   private secretKey: string = "secretKey"; // should be in a safe place
 
   constructor(private http: HttpClient) {

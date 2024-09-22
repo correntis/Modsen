@@ -11,8 +11,8 @@ import { Filter } from '../../core/models/fitler';
 })
 export class BooksService {
 
-  apiName: string = "http://localhost:5005/api/v1/books" 
-  resoursecUrl: string = "http://localhost:5005/Resources"
+  apiName: string = "http://localhost:5000/api/v1/books" 
+  resoursecUrl: string = "http://localhost:5000/Resources"
 
   constructor(private http: HttpClient) { }
 
@@ -74,10 +74,8 @@ export class BooksService {
   }
 
   getPage(pageIndex: number, pageSize: number, filter: Filter): Observable<Book[]>{
-    return this.http.get<Book[]>(this.apiName + "/pages", { 
+    return this.http.get<Book[]>(this.apiName + `/pages?pageIndex=${pageIndex}&pageSize=${pageSize}`, { 
       params: {
-        pageSize: pageSize.toString(),
-        pageIndex: pageIndex.toString(),
         name: filter.name,
         author: filter.author,
         genre: filter.genre

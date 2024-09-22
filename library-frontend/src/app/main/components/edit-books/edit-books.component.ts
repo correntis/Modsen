@@ -21,7 +21,7 @@ import { forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 })
 export class EditBooksComponent {
 
-  public apiResoursec: string = "http://localhost:5005/Resources/"
+  public apiResources: string = "http://localhost:5000/Resources/"
 
   public book: Book | null = null;
   public isEditMode: boolean = false;

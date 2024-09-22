@@ -5,15 +5,25 @@ using Library.Core.Abstractions;
 using Library.API.Extensions;
 using Library.Application.Services;
 using Library.Core.Configuration;
-using Microsoft.Extensions.FileProviders;
 using Library.API.Middleware;
 using FluentValidation;
 using Library.API.Contracts;
 using Library.API.Validation;
 
+
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
+
+if(configuration["IS_MIGRATION"] == "false") // Wait migration container to start
+{
+    await Task.Delay(20000);
+}
+else // Wait for database container to start
+{
+    await Task.Delay(2000);
+}
+
 
 configuration
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -31,12 +41,18 @@ services.AddSwaggerGen();
 services.AddLibraryMapping();
 services.AddDbContext<LibraryDbContext>(options =>
 {
-    options.UseNpgsql(configuration.GetConnectionString("LibraryConnection"));
+    options.UseNpgsql(
+        $"User ID={configuration["POSTGRES_USER"]};" +
+        $"Password={configuration["POSTGRES_PASSWORD"]};" +
+        $"Host={configuration["POSTGRES_HOST"]};" +
+        $"Port={configuration["POSTGRES_PORT"]};" +
+        $"Database={configuration["POSTGRES_DB"]}"
+    );
 });
 
 services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = configuration["RedisConnection"];
+    options.Configuration = $"{configuration["TOKENS_STORAGE_HOST"]}:{configuration["TOKENS_STORAGE_PORT"]}";
     options.InstanceName = "Library";
 });
 
@@ -64,6 +80,16 @@ services.AddScoped<IValidator<RegisterContract>, RegisterValidator>();
 
 
 var app = builder.Build();
+
+using(var scope = app.Services.CreateScope())
+{
+    if(configuration["SEED_ON_START"] == "true")
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+
+        await LibraryDbInitializer.InitializeAsync(dbContext);
+    }
+}
 
 app.UseCors(options =>
 {

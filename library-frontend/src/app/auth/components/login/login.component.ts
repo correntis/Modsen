@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule, ɵInternalFormsSharedModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UsersService } from '../../../main/services/users.service';
 import { User } from '../../../core/models/user';
@@ -9,7 +9,7 @@ import { User } from '../../../core/models/user';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterModule],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {

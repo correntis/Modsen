@@ -16,10 +16,16 @@
             class="w-[250px] px-4 py-2 rounded-lg bg-white shadow-md focus:outline-none focus:ring focus:border-indigo-300">
     </div>
 
-   <div class="bg-[#eeeeee] hover:bg-[#dfdfdf]  ml-3 rounded-xl shadow-2xl">
-    <button (click)="onSearch()" class="text-gray-500 px-8 py-2 hover:text-black flex items-baseline ">
+   <div class="bg-blue-500 hover:bg-[#dfdfdf]  ml-3 rounded-xl shadow-2xl">
+    <button (click)="onSearch()" class="text-white px-8 py-2 hover:text-black flex items-baseline ">
         
         <span>Search</span>
+    </button>
+   </div>
+    <div class="bg-[#eeeeee] hover:bg-[#dfdfdf]  ml-3 rounded-xl shadow-2xl">
+    <button (click)="onReset()" class="text-gray-500 px-8 py-2 hover:text-black flex items-baseline ">
+        
+        <span>Reset</span>
     </button>
    </div>
 </div>
@@ -34,7 +40,7 @@
     <div [routerLink]="['/books', book.id]" *ngFor="let book of books"
          class="flex flex-col bg-white shadow-md rounded-lg cursor-pointer hover:scale-[1.01] w-[280px]">
       <div class="mb-4 w-[280px] h-[350px]">
-        <img [src]="'http://localhost:5005/Resources/' + book.imagePath" 
+        <img [src]="'http://localhost:5000/Resources/' + book.imagePath" 
              alt="{{ book.name }} cover image" 
              class="object-fill rounded-md shadow-lg w-full h-full">
       </div>
@@ -66,7 +72,8 @@
     <mat-paginator  
       [length]="totalPages"
       [pageSize]="pageSize" 
-      (page)="onPageChange($event)">
+      (page)="onPageChange($event)"
+      [pageIndex]="pageIndex">
     </mat-paginator>
 </div>
 

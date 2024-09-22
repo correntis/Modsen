@@ -6,10 +6,13 @@ import { User } from '../../core/models/user';
   providedIn: 'root'
 })
 export class AuthService {
+
+  private apiName: string = "http://localhost:5000/api/v1/auth";
+
   constructor(private http: HttpClient) { }
 
   login(email: string, password: string){
-    return this.http.post('http://localhost:5005/api/v1/auth/login', 
+    return this.http.post(this.apiName + '/login', 
       {
         email, 
         password
@@ -17,7 +20,7 @@ export class AuthService {
   }
 
   register(email: string, password: string, username: string){
-    return this.http.post("http://localhost:5005/api/v1/auth/register", 
+    return this.http.post(this.apiName + "/register", 
       {
         email,
         password,

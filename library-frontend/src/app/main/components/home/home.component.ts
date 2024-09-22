@@ -19,7 +19,7 @@ import { HeaderComponent } from "../header/header.component";
 export class HomeComponent  {
   public user: User | undefined;
   public totalPages: number = 0
-  public pageSize: number = 15;
+  public pageSize: number = 6;
   public pageIndex: number = 0;
   public filter: Filter = {
     name: "",
@@ -37,7 +37,7 @@ export class HomeComponent  {
   ngOnInit(){
     this.booksService.getAmount(this.filter)
       .subscribe(amount => {
-        this.totalPages = Math.round(amount / this.pageSize)
+        this.totalPages = Math.round(amount)
       })
 
     this.booksService.getPage(this.pageIndex, this.pageSize, this.filter)
@@ -77,6 +77,13 @@ export class HomeComponent  {
   onSearch(){
     this.getAmount();
     this.getBooks();    
+  }
+
+  onReset(){
+    this.filter.author = "";
+    this.filter.name = "";
+    this.filter.genre = "";
+    this.onSearch();
   }
 
   onInputKeyDown(event: KeyboardEvent){
