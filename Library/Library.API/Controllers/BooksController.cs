@@ -3,6 +3,7 @@ using FluentValidation;
 using Library.API.Contracts;
 using Library.API.Validation;
 using Library.Core.Abstractions;
+using Library.Core.Exceptions;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,12 +41,7 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Add(BookContract bookContract)
         {
-            var validationResult = await _booksValidator.ValidateAsync(bookContract);
-
-            if(!validationResult.IsValid)
-            {
-                return BadRequest(JsonSerializer.Serialize(validationResult.Errors));
-            }
+            await _booksValidator.ValidateAndThrowAsync(bookContract);
 
             var book = _mapper.Map<Book>(bookContract);
             book.ImagePath = _fileService.DefaultImagePath;
@@ -55,36 +51,23 @@ namespace Library.API.Controllers
                 book.ImagePath = await _fileService.SaveAsync(bookContract.ImageFile);
             }
 
-            var guid = await _booksService.AddAsync(book);
-            
-            return Ok(guid);
+            return Ok(await _booksService.AddAsync(book));
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> AddAuthor(Guid bookId, Guid authorId)
         {
-            var guid = await _booksService.AddAuthorAsync(bookId, authorId);
-
-            return Ok(guid);
+            return Ok(await _booksService.AddAuthorAsync(bookId, authorId));
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, BookContract bookContract)
         {
-            var validationResult = await _booksValidator.ValidateAsync(bookContract);
-
-            if(!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
+            await _booksValidator.ValidateAndThrowAsync(bookContract);
 
             var existingBook = await _booksService.GetAsync(id);
-            if(existingBook == null)
-            {
-                return NotFound();
-            }
 
             var book = _mapper.Map<Book>(bookContract);
             book.Id = id;
@@ -101,68 +84,51 @@ namespace Library.API.Controllers
                 book.ImagePath = newImagePath;
             }
 
-
-            var guid = await _booksService.UpdateAsync(book);
-
-            return Ok(guid);
+            return Ok(await _booksService.UpdateAsync(book));
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var guid = await _booksService.DeleteAsync(id);
-
-            return Ok(guid);
+            return Ok(await _booksService.DeleteAsync(id));
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> DeleteAuthor(Guid bookId, Guid authorId)
         {
-            var guid = await _booksService.DeleteAuthorAsync(bookId, authorId);
-
-            return Ok(guid);
+            return Ok(await _booksService.DeleteAuthorAsync(bookId, authorId));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            var book = await _booksService.GetAsync(id);
-
-            return Ok(book);
+            return Ok(await _booksService.GetAsync(id));
         }
 
         [HttpGet("authors/{authorId}")]
         public async Task<IActionResult> GetByAuthor(Guid authorId)
         {
-            var book = await _booksService.GetByAuthorAsync(authorId);
-
-            return Ok(book);
+            return Ok(await _booksService.GetByAuthorAsync(authorId));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var books = await _booksService.GetAllAsync();
-
-            return Ok(books);
+            return Ok(await _booksService.GetAllAsync());
         }
 
         [HttpGet("pages")]
         public async Task<IActionResult> GetPage(int pageIndex, int pageSize, [FromQuery] BooksFilter filter)
         {
-            var books = await _booksService.GetPageAsync(pageIndex, pageSize, filter);
-
-            return Ok(books);
+            return Ok(await _booksService.GetPageAsync(pageIndex, pageSize, filter));
         }
 
         [HttpGet("amount")]
         public async Task<IActionResult> GetBooksAmount([FromQuery] BooksFilter filter)
         {
-            var amount = await _booksService.GetAmountAsync(filter);
-
-            return Ok(amount);
+            return Ok(await _booksService.GetAmountAsync(filter));
         }
     }
 }

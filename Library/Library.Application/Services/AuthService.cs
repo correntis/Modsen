@@ -1,7 +1,8 @@
 ﻿using Library.Core.Abstractions;
+using Library.Core.Exceptions;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Identity;
-using System;
+using Microsoft.Extensions.Logging;
 
 namespace Library.Application.Services
 {
@@ -24,21 +25,16 @@ namespace Library.Application.Services
 
         public async Task<(User, UserToken)> Login(string email, string password)
         {
-            var user = await _usersRepository.GetByEmailAsync(email);
-
-            if(user is null)
-            {
-                return (null, null);
-            }
-
+            var user = await _usersRepository.GetByEmailAsync(email) 
+                ?? throw new NotFoundException("User not found.");
+            
             var passwordHasher = new PasswordHasher<User>();
-
             if(passwordHasher.VerifyHashedPassword(null, user.PasswordHash, password) == PasswordVerificationResult.Failed)
             {
-                return (null, null);
+                throw new InvalidPasswordException("Invalid password.");
             }
 
-            return (user,await CreateTokensAsync(user.Id, user.Roles.Select(ur => ur.Name).ToList()));
+            return (user, await CreateTokensAsync(user.Id, user.Roles.Select(ur => ur.Name).ToList()));
         }
 
         public async Task<UserToken> Register(string username, string email, string password)
@@ -50,10 +46,8 @@ namespace Library.Application.Services
                 PasswordHash = new PasswordHasher<User>().HashPassword(null, password),
             };
 
-            if (await _usersRepository.GetByEmailAsync(email) is not null)
-            {
-                return null;               
-            }
+            _ = await _usersRepository.GetByEmailAsync(email)
+                ?? throw new EntityAlreadyExistsException("User already exists.");
 
             var guid = await _usersRepository.AddAsync(user);
             await _usersRepository.AddRolesAsync(guid, ["User"]);

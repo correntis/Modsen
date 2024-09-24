@@ -34,70 +34,48 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(AuthorContract authorContract)
         {
-            var validationResult = await _authorValidator.ValidateAsync(authorContract);
-
-            if(!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
+            await _authorValidator.ValidateAndThrowAsync(authorContract);
 
             var author = _mapper.Map<Author>(authorContract);
 
-            var guid = await _authorsService.AddAsync(author);
-
-            return Ok(guid);
+            return Ok(await _authorsService.AddAsync(author));
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, AuthorContract authorContract)
         {
-            var validationResult = await _authorValidator.ValidateAsync(authorContract);
-
-            if(!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
+            await _authorValidator.ValidateAndThrowAsync(authorContract);
 
             var author = _mapper.Map<Author>(authorContract);
             author.Id = id;
 
-            var guid = await _authorsService.UpdateAsync(author);
-
-            return Ok(guid);
+            return Ok(await _authorsService.UpdateAsync(author));
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var guid = await _authorsService.DeleteAsync(id);
-
-            return Ok(guid);
+            return Ok(await _authorsService.DeleteAsync(id));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            var author = await _authorsService.GetAsync(id);
-
-            return Ok(author);
+            return Ok(await _authorsService.GetAsync(id));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var authors = await _authorsService.GetAllAsync();
-
-            return Ok(authors);
+            return Ok(await _authorsService.GetAllAsync());
         }
 
         [HttpGet("page")]
         public async Task<IActionResult> GetPage(int pageIndex, int pageSize)
         {
-            var authors = await _authorsService.GetPageAsync(pageIndex, pageSize);
-
-            return Ok(authors);
+            return Ok(await _authorsService.GetPageAsync(pageIndex, pageSize));
         }
     }
 }

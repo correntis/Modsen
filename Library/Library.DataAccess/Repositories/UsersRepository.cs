@@ -69,6 +69,11 @@ namespace Library.DataAccess.Repositories
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
+            if(userEntity is null)
+            {
+                return Guid.Empty;
+            }
+
             var userRolesEntities = await _context.UserRoles
                 .Where(ur => userRoles.Any(role => role == ur.Name))
                 .ToListAsync();
@@ -107,6 +112,11 @@ namespace Library.DataAccess.Repositories
                 .Include(u => u.Books)
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Id == id);
+
+            if(userEntity is null)
+            {
+                return Guid.Empty;
+            }
 
             _context.Users.Add(userEntity);
             await _context.SaveChangesAsync();

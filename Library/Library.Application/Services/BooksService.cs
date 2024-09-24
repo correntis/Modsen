@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Library.Core.Abstractions;
+using Library.Core.Exceptions;
 using Library.Core.Models;
 
 namespace Library.Application.Services
@@ -27,37 +28,65 @@ namespace Library.Application.Services
 
         public async Task<Guid> AddAuthorAsync(Guid bookId, Guid authorId)
         {
-            return await _booksRepository.AddAuthorAsync(bookId, authorId);
+            var guid = await _booksRepository.AddAuthorAsync(bookId, authorId);
+
+            ThrowNotFoundIfEmptyGuid(guid);
+
+            return guid;
         }
 
         public async Task<Guid> UpdateAsync(Book book)
         {
-            return await _booksRepository.UpdateAsync(book);
+            var guid = await _booksRepository.UpdateAsync(book);
+
+            ThrowNotFoundIfEmptyGuid(guid);
+
+            return guid;
         }
 
         public async Task<Guid> DeleteAsync(Guid id)
         {
-            return await _booksRepository.DeleteAsync(id);
+            var guid = await _booksRepository.DeleteAsync(id);
+
+            ThrowNotFoundIfEmptyGuid(guid);
+
+            return guid;
         }
 
         public async Task<Guid> DeleteAuthorAsync(Guid bookId, Guid authorId)
         {
-            return await _booksRepository.DeleteAuthorAsync(bookId, authorId);
+            var guid = await _booksRepository.DeleteAuthorAsync(bookId, authorId);
+
+            ThrowNotFoundIfEmptyGuid(guid);
+
+            return guid;
         }
 
         public async Task<Book> GetAsync(Guid id)
         {
-            return await _booksRepository.GetAsync(id);
+            var book =  await _booksRepository.GetAsync(id);
+
+            ThrowNotFoundIfBookIsNull(book);
+
+            return book;
         }
 
         public async Task<Book> GetByAuthorAsync(Guid authorId)
         {
-            return await _booksRepository.GetByAuthorAsync(authorId);
+            var book = await _booksRepository.GetByAuthorAsync(authorId);
+            
+            ThrowNotFoundIfBookIsNull(book);
+
+            return book;
         }
 
         public async Task<Book> GetByIsbnAsync(string isbn)
         {
-            return await _booksRepository.GetByIsbnAsync(isbn);
+            var book =  await _booksRepository.GetByIsbnAsync(isbn);
+
+            ThrowNotFoundIfBookIsNull(book);
+
+            return book;
         }
 
         public async Task<IEnumerable<Book>> GetAllAsync()
@@ -75,5 +104,21 @@ namespace Library.Application.Services
             return await _booksRepository.GetAmountAsync(filter);
         }
 
+
+        private void ThrowNotFoundIfEmptyGuid(Guid guid)
+        {
+            if(guid == Guid.Empty)
+            {
+                throw new NotFoundException("User not found.");
+            }
+        }
+
+        private void ThrowNotFoundIfBookIsNull(Book author)
+        {
+            if(author is null)
+            {
+                throw new NotFoundException("Book not found.");
+            }
+        }
     }
 }

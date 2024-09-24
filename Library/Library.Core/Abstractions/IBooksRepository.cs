@@ -14,7 +14,6 @@ namespace Library.Core.Abstractions
         Task<Book> GetByAuthorAsync(Guid authorId);
         Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize, BooksFilter filter);
         Task<int> GetAmountAsync(BooksFilter filter);
-        Task<Guid> IssueAsync(Guid id, DateTime returnBy);
         Task<Guid> UpdateAsync(Book book);
     }
 }

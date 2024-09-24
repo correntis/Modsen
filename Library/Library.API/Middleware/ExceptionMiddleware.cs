@@ -1,5 +1,5 @@
-﻿
-using Library.API.Exceptions;
+﻿using FluentValidation;
+using Library.Core.Exceptions;
 using System.Net;
 using System.Text.Json;
 
@@ -24,20 +24,37 @@ namespace Library.API.Middleware
 			{
 				await next(context);
 			}
-			catch(Exception ex)
+            catch(ValidationException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                WriteResponseErrorAsync(context, ex);
+            }
+            catch(NotFoundException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                WriteResponseErrorAsync(context, ex);
+            }
+            catch(EntityAlreadyExistsException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Conflict;
+                WriteResponseErrorAsync(context, ex);
+            }
+            catch(Exception ex)
 			{
-                _logger.LogError(ex, ex.Message);
-                context.Response.ContentType = "application/json";
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                WriteResponseErrorAsync(context, ex);
+            }
+        }
 
-                var response = _env.IsDevelopment()
-                    ? new ApiException(context.Response.StatusCode, ex.Message, ex.ToString())
-                    : new ApiException(context.Response.StatusCode, "Internal Server Error");
+        private async void WriteResponseErrorAsync(HttpContext context, Exception ex)
+        {
+            _logger.LogError("Error: {value}", ex.ToString());
 
-                var json = JsonSerializer.Serialize(response);
+            context.Response.ContentType = "application/json";
 
-                await context.Response.WriteAsync(json);
-			}
+            var response = new ApiException(context.Response.StatusCode, ex.Message, ex.ToString());
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }
 }

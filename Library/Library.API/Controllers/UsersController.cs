@@ -33,80 +33,40 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> AddBook(Guid userId, Guid bookId)
         {
-            var guid = await _usersService.AddBookAsync(userId, bookId);
-
-            if(guid == Guid.Empty)
-            {
-                return StatusCode(500, "Internal Server Error");
-            }
-
-            return Ok(guid);
+            return Ok(await _usersService.AddBookAsync(userId, bookId));
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Update(Guid id, UserContract userContract)
         {
-            var validationResult = await _usersValidator.ValidateAsync(userContract);
-
-            if(!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
+            await _usersValidator.ValidateAndThrowAsync(userContract);
 
             var user = _mapper.Map<User>(userContract);
             user.Id = id;
 
-            var guid = await _usersService.UpdateAsync(user);
-
-            if (guid == Guid.Empty)
-            {
-                return StatusCode(500, "Internal Server Error");
-            }
-
-            return Ok(guid);
+            return Ok(await _usersService.UpdateAsync(user));
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var guid = await _usersService.DeleteAsync(id);
-
-            if(guid == Guid.Empty)
-            {
-                return StatusCode(500, "Internal Server Error");
-            }
-
-            return Ok(guid);
+            return Ok(await _usersService.DeleteAsync(id));
         }
 
         [HttpDelete("{userId}/books/{bookId}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> DeleteBook(Guid userId, Guid bookId)
         {
-            var guid = await _usersService.AddBookAsync(userId, bookId);
-
-            if(guid == Guid.Empty)
-            {
-                return StatusCode(500, "Internal Server Error");
-            }
-
-            return Ok(guid);
+            return Ok(await _usersService.AddBookAsync(userId, bookId));
         }
 
         [HttpGet("{userId}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Get(Guid userId)
         {
-            var user = await _usersService.GetAsync(userId);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(user);
+            return Ok(await _usersService.GetAsync(userId));
         }
     }
 }

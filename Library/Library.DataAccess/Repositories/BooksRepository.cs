@@ -82,25 +82,6 @@ namespace Library.DataAccess.Repositories
             return bookEntity.Id;
         }
 
-        public async Task<Guid> IssueAsync(Guid id, DateTime returnBy)
-        {
-
-            var bookEntity = await _context.Books
-                .FirstOrDefaultAsync(b => b.Id == id);
-
-            if(bookEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            bookEntity.TakenAt = DateTime.Now;
-            bookEntity.ReturnBy = returnBy;
-
-            await _context.SaveChangesAsync();
-
-            return bookEntity.Id;
-        }
-
         public async Task<Guid> DeleteAsync(Guid id)
         {
             var bookEntity = await _context.Books

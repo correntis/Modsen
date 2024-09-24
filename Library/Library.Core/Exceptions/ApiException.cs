@@ -1,4 +1,4 @@
-﻿namespace Library.API.Exceptions
+﻿namespace Library.Core.Exceptions
 {
     public class ApiException
     {
