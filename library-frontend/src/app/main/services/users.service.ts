@@ -48,6 +48,7 @@ export class UsersService {
   public logout(): void {
     this.currentUserSubject.next(undefined);
     this.deleteCookieId();
+    this.deleteCookieTokens();
   }
 
   private setCookieId(userId: Guid){
@@ -73,6 +74,11 @@ export class UsersService {
   
   private deleteCookieId(){
     document.cookie = `id=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+  }
+
+  private deleteCookieTokens(){
+    document.cookie = `accessToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+    document.cookie = `refreshToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
   }
 
   private encryptId(id: Guid): string{

@@ -149,22 +149,13 @@ export class EditBooksComponent {
 
   
   save() {
-    console.log("save");
-    
     if (this.book) {
-      console.log("this.book");
-      
       if (this.isEditMode) {
-
-        console.log("edit mode");
-        
         this.booksService.update(this.book, this.imageChanged ? this.selectedImage : null)
           .pipe(
             mergeMap(() => this.saveAuthors(this.book!.id))
           )
           .subscribe((id) => {
-            console.log("admin books redirect");
-            
             this.route.navigate(['/admin/books']);
           });
       } else {

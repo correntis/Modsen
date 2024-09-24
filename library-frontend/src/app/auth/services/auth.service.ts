@@ -16,7 +16,7 @@ export class AuthService {
       {
         email, 
         password
-      })
+      }, { withCredentials: true })
   }
 
   register(email: string, password: string, username: string){
@@ -25,6 +25,6 @@ export class AuthService {
         email,
         password,
         username
-      })
+      }, { withCredentials: true })
   }
 }
