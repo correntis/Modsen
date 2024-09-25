@@ -9,7 +9,7 @@ namespace Library.API.Extensions
 {
     public static class AuthenticationExtensions
     {
-        public static void AddLibraryAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static void AddAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

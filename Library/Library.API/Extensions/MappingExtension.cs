@@ -6,7 +6,7 @@ namespace Library.API.Extensions
 {
     public static class MappingExtension
     {
-        public static void AddLibraryMapping(this IServiceCollection services)
+        public static void AddMapping(this IServiceCollection services)
         {
             services.AddAutoMapper(
                 typeof(BooksProfile),

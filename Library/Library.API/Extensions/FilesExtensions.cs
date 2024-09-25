@@ -5,7 +5,7 @@ namespace Library.API.Extensions
 {
     public static class FilesExtensions
     {
-        public static void AddLibraryStaticFiles(this WebApplication app)
+        public static void AddStaticFiles(this WebApplication app)
         {
             var contentPath = app.Environment.ContentRootPath;
             var path = Path.Combine(contentPath, "Uploads");

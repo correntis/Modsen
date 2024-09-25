@@ -38,7 +38,7 @@ services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
 
-services.AddLibraryMapping();
+services.AddMapping();
 services.AddDbContext<LibraryDbContext>(options =>
 {
     options.UseNpgsql(
@@ -56,7 +56,7 @@ services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "Library";
 });
 
-services.AddLibraryAuthentication(configuration);
+services.AddAuthentication(configuration);
 
 services.AddScoped<IBooksRepository, BooksRepository>();
 services.AddScoped<IAuthorsRepository, AuthorsRepository>();
@@ -102,7 +102,7 @@ app.UseCors(options =>
         .AllowCredentials();
 });
 
-app.AddLibraryStaticFiles();
+app.AddStaticFiles();
 
 app.UseSwagger();
 app.UseSwaggerUI();
