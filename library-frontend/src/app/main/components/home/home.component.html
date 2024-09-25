@@ -1,6 +1,5 @@
 <app-header></app-header>
 
-
 <div class="flex flex-row justify-center align-baseline items-baseline mt-5">
     <div>
         <input [(ngModel)]="filter.name" (keydown)="onInputKeyDown($event)" type="text" placeholder="Name" 
@@ -40,7 +39,7 @@
     <div [routerLink]="['/books', book.id]" *ngFor="let book of books"
          class="flex flex-col bg-white shadow-md rounded-lg cursor-pointer hover:scale-[1.01] w-[280px]">
       <div class="mb-4 w-[280px] h-[350px]">
-        <img [src]="'http://localhost:5000/Resources/' + book.imagePath" 
+        <img [src]="apiResources + '/' + book.imagePath" 
              alt="{{ book.name }} cover image" 
              class="object-fill rounded-md shadow-lg w-full h-full">
       </div>

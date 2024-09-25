@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { User } from '../../../core/models/user';
 import { UsersService } from '../../services/users.service';
 import { HeaderComponent } from "../header/header.component";
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-book',
@@ -15,6 +16,8 @@ import { HeaderComponent } from "../header/header.component";
   templateUrl: './book.component.html',
 })
 export class BookComponent {
+  public apiResources: string = environment.API_RESOURCCES;
+
   public book: Book | undefined = undefined;
   public user: User | undefined = undefined;
 

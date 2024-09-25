@@ -5,14 +5,15 @@ import { Book } from '../../core/models/book';
 import { Observable } from 'rxjs';
 import { Author } from '../../core/models/author';
 import { Filter } from '../../core/models/fitler';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BooksService {
 
-  apiName: string = "http://localhost:5000/api/v1/books" 
-  resoursecUrl: string = "http://localhost:5000/Resources"
+  apiName: string = environment.API_NAME + "/books" 
+  resoursecUrl: string = environment.API_RESOURCCES;
 
   constructor(private http: HttpClient) { }
 

@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { Guid } from 'guid-typescript';
 import { BehaviorSubject, Observable } from 'rxjs';
 import * as crypto from "crypto-js";
+import { environment } from '../../../environments/environment';
 
 
 @Injectable({
@@ -12,7 +13,7 @@ import * as crypto from "crypto-js";
 export class UsersService {
   private currentUserSubject: BehaviorSubject<User | undefined> = new BehaviorSubject<User | undefined>(undefined);
   public currentUser$: Observable<User | undefined> = this.currentUserSubject.asObservable();
-  private apiName: string = "http://localhost:5000/api/v1/users";
+  private apiName: string = environment.API_NAME + "/users";
   private secretKey: string = "secretKey"; // should be in a safe place
 
   constructor(private http: HttpClient) {

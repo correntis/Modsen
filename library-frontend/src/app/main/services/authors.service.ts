@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Author } from '../../core/models/author';
 import { Guid } from 'guid-typescript';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthorsService {
-  private apiName: string = "http://localhost:5000/api/v1/authors"
+  private apiName: string = environment.API_NAME + "/authors"
 
   constructor(private http: HttpClient) { }
 

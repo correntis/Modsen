@@ -9,6 +9,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { Filter } from '../../../core/models/fitler';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from "../header/header.component";
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -17,6 +18,8 @@ import { HeaderComponent } from "../header/header.component";
   templateUrl: './home.component.html',
 })
 export class HomeComponent  {
+  public apiResources: string = environment.API_RESOURCCES;
+
   public user: User | undefined;
   public totalPages: number = 0
   public pageSize: number = 6;

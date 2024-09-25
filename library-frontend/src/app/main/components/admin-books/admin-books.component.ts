@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { Filter } from '../../../core/models/fitler';
 import { HeaderComponent } from '../header/header.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-admin-books',
@@ -18,7 +19,8 @@ import { HeaderComponent } from '../header/header.component';
   templateUrl: './admin-books.component.html',
 })
 export class AdminBooksComponent {
-
+  public apiResources: string = environment.API_RESOURCCES;
+ 
   public books: Book[] = [];
 
   public totalPages = 0;
