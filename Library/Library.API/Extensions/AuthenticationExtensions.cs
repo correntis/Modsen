@@ -26,34 +26,6 @@ namespace Library.API.Extensions
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtOptions:Secret"])),
                         ClockSkew = TimeSpan.Zero
                     };
-
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
-                        {
-
-                            if (context.Request.Cookies.TryGetValue("accessToken", out var accessToken))
-                            {
-                                var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-
-                                if(jwtToken.ValidTo < DateTime.UtcNow)
-                                {
-                                    var tokenHandler = context.HttpContext.RequestServices.GetRequiredService<IRefreshTokenHandler>();
-                                    var newAccessToken = tokenHandler.HandleUpdateAsync(context.HttpContext).Result;
-
-                                    if (!string.IsNullOrEmpty(newAccessToken))
-                                    {
-                                        accessToken = newAccessToken;
-                                    }
-                                }
-
-                                context.Token = accessToken;
-                            }
-
-
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
 
             services.AddAuthorization();

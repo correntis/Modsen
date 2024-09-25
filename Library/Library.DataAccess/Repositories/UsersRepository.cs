@@ -118,7 +118,7 @@ namespace Library.DataAccess.Repositories
                 return Guid.Empty;
             }
 
-            _context.Users.Add(userEntity);
+            _context.Users.Remove(userEntity);
             await _context.SaveChangesAsync();
 
             return userEntity.Id;

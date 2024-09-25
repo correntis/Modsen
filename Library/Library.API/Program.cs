@@ -70,7 +70,9 @@ services.AddScoped<ITokenService, TokenService>();
 services.AddScoped<ITokenCacheService, TokenCacheService>();
 services.AddScoped<IFileService, FileService>();
 services.AddScoped<IRefreshTokenHandler, RefreshTokenHandler>();
+
 services.AddScoped<ExceptionMiddleware>();
+services.AddScoped<AuthenticationMiddleware>();
 
 services.AddScoped<IValidator<UserContract>, UserValidator>();
 services.AddScoped<IValidator<BookContract>, BookValidator>();
@@ -105,11 +107,13 @@ app.AddLibraryStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<AuthenticationMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseMiddleware<ExceptionMiddleware>();
 
 app.Run();
