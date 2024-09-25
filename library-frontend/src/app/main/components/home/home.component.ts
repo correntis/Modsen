@@ -78,8 +78,15 @@ export class HomeComponent  {
   }
 
   onSearch(){
-    this.getAmount();
-    this.getBooks();    
+    this.booksService.getAmount(this.filter)
+      .subscribe(amount => {
+        this.totalPages = Math.round(amount)
+      })
+
+    this.booksService.getPage(this.pageIndex, this.pageSize, this.filter)
+    .subscribe(books => {
+      this.books = books;
+    });  
   }
 
   onReset(){

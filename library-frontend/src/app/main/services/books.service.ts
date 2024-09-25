@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { Author } from '../../core/models/author';
 import { Filter } from '../../core/models/fitler';
 import { environment } from '../../../environments/environment';
+import { observableToBeFn } from 'rxjs/internal/testing/TestScheduler';
 
 @Injectable({
   providedIn: 'root'
@@ -84,13 +85,13 @@ export class BooksService {
     });
   }
 
-  getAmount(filter: Filter){
+  getAmount(filter: Filter): Observable<number>{
     return this.http.get<number>(this.apiName + "/amount", {
-      headers: {
+      params: {
         name: filter.name,
         author: filter.author,
         genre: filter.genre
-      }
+      },
     });
   }
 
