@@ -1,218 +1,229 @@
-﻿using AutoMapper;
+﻿using Moq;
+using AutoMapper;
 using Library.Application.Services;
 using Library.Core.Abstractions;
+using Library.Core.Entities;
 using Library.Core.Models;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Library.Tests.Unit
 {
     public class BooksServiceTests
     {
-        private readonly Mock<IBooksRepository> _booksRepositoryMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<IFileService> _fileServiceMock;
         private readonly BooksService _booksService;
 
         public BooksServiceTests()
         {
-            _booksRepositoryMock = new Mock<IBooksRepository>();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
             _mapperMock = new Mock<IMapper>();
-            _booksService = new BooksService(_booksRepositoryMock.Object, _mapperMock.Object);
+            _fileServiceMock = new Mock<IFileService>();
+
+            _booksService = new BooksService(_unitOfWorkMock.Object, _mapperMock.Object, _fileServiceMock.Object);
         }
 
         [Fact]
-        public async Task AddAsync_Should_SetDefaultValues_AndCallRepositoryAdd()
+        public async Task AddAsync_ShouldAddBookAndReturnId()
         {
             // Arrange
-            var book = new Book();
-            var bookId = Guid.NewGuid();
+            var book = new Book { Name = "Test Book", ImageFile = new Mock<IFormFile>().Object };
+            var bookEntity = new BookEntity { Id = Guid.NewGuid() };
 
-            _booksRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Book>())).ReturnsAsync(bookId);
+            _fileServiceMock.Setup(fs => fs.SaveAsync(book.ImageFile)).ReturnsAsync("test/path");
+            _mapperMock.Setup(m => m.Map<BookEntity>(book)).Returns(bookEntity);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.AddAsync(It.IsAny<BookEntity>())).Returns(Task.CompletedTask);
+            _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
             var result = await _booksService.AddAsync(book);
 
             // Assert
-            Assert.Equal(DateTime.MinValue, book.TakenAt);
-            Assert.Equal(DateTime.MinValue, book.ReturnBy);
-            _booksRepositoryMock.Verify(r => r.AddAsync(book), Times.Once);
-            Assert.Equal(bookId, result);
+            Assert.Equal(bookEntity.Id, result);
+            _fileServiceMock.Verify(fs => fs.SaveAsync(book.ImageFile), Times.Once);
+            _unitOfWorkMock.Verify(u => u.BooksRepository.AddAsync(bookEntity), Times.Once);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
         [Fact]
-        public async Task AddAuthorAsync_Should_CallRepositoryAddAuthor_WithCorrectIds()
+        public async Task AddAuthorAsync_ShouldAddAuthorToBook()
         {
             // Arrange
             var bookId = Guid.NewGuid();
             var authorId = Guid.NewGuid();
+            var bookEntity = new BookEntity { Id = bookId, Authors = new List<AuthorEntity>() };
+            var authorEntity = new AuthorEntity { Id = authorId };
 
-            _booksRepositoryMock.Setup(r => r.AddAuthorAsync(bookId, authorId)).ReturnsAsync(bookId);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAsync(bookId)).ReturnsAsync(bookEntity);
+            _unitOfWorkMock.Setup(u => u.AuthorsRepository.GetAsync(authorId)).ReturnsAsync(authorEntity);
+            _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _booksService.AddAuthorAsync(bookId, authorId);
+            await _booksService.AddAuthorAsync(bookId, authorId);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.AddAuthorAsync(bookId, authorId), Times.Once);
-            Assert.Equal(bookId, result);
+            Assert.Contains(authorEntity, bookEntity.Authors);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
-
         [Fact]
-        public async Task UpdateAsync_Should_CallRepositoryUpdate_WithCorrectBook()
+        public async Task UpdateAsync_ShouldUpdateBookDetails()
         {
             // Arrange
-            var book = new Book { Id = Guid.NewGuid() };
+            var book = new Book { Id = Guid.NewGuid(), Name = "Updated Book", ISBN = "123456", Genre = "Fiction" };
+            var bookEntity = new BookEntity { Id = book.Id };
 
-            _booksRepositoryMock.Setup(r => r.UpdateAsync(book)).ReturnsAsync(book.Id);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAsync(book.Id)).ReturnsAsync(bookEntity);
+            _fileServiceMock.Setup(fs => fs.SaveAsync(book.ImageFile)).ReturnsAsync("updated/path");
+            _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _booksService.UpdateAsync(book);
+            await _booksService.UpdateAsync(book);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.UpdateAsync(book), Times.Once);
-            Assert.Equal(book.Id, result);
+            Assert.Equal(book.Name, bookEntity.Name);
+            Assert.Equal(book.ISBN, bookEntity.ISBN);
+            Assert.Equal(book.Genre, bookEntity.Genre);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
-
         [Fact]
-        public async Task DeleteAsync_Should_CallRepositoryDelete_WithCorrectId()
+        public async Task DeleteAsync_ShouldRemoveBookFromRepository()
         {
             // Arrange
             var bookId = Guid.NewGuid();
+            var bookEntity = new BookEntity { Id = bookId };
 
-            _booksRepositoryMock.Setup(r => r.DeleteAsync(bookId)).ReturnsAsync(bookId);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAsync(bookId)).ReturnsAsync(bookEntity);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.Delete(bookEntity));
+            _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _booksService.DeleteAsync(bookId);
+            await _booksService.DeleteAsync(bookId);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.DeleteAsync(bookId), Times.Once);
-            Assert.Equal(bookId, result);
+            _unitOfWorkMock.Verify(u => u.BooksRepository.Delete(bookEntity), Times.Once);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
         [Fact]
-        public async Task DeleteAuthorAsync_Should_CallRepositoryDeleteAuthor_WithCorrectIds()
+        public async Task DeleteAuthorAsync_ShouldRemoveAuthorFromBook()
         {
             // Arrange
             var bookId = Guid.NewGuid();
             var authorId = Guid.NewGuid();
+            var authorEntity = new AuthorEntity { Id = authorId };
+            var bookEntity = new BookEntity { Id = bookId, Authors = new List<AuthorEntity> { authorEntity } };
 
-            _booksRepositoryMock.Setup(r => r.DeleteAuthorAsync(bookId, authorId)).ReturnsAsync(bookId);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAsync(bookId)).ReturnsAsync(bookEntity);
+            _unitOfWorkMock.Setup(u => u.AuthorsRepository.GetAsync(authorId)).ReturnsAsync(authorEntity);
+            _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _booksService.DeleteAuthorAsync(bookId, authorId);
+            await _booksService.DeleteAuthorAsync(bookId, authorId);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.DeleteAuthorAsync(bookId, authorId), Times.Once);
-            Assert.Equal(bookId, result);
+            Assert.DoesNotContain(authorEntity, bookEntity.Authors);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
-
         [Fact]
-        public async Task GetAsync_Should_CallRepositoryGet_WithCorrectId()
+        public async Task GetAsync_ShouldReturnBookById()
         {
             // Arrange
             var bookId = Guid.NewGuid();
-            var book = new Book { Id = bookId };
+            var bookEntity = new BookEntity { Id = bookId };
 
-            _booksRepositoryMock.Setup(r => r.GetAsync(bookId)).ReturnsAsync(book);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAsync(bookId)).ReturnsAsync(bookEntity);
 
             // Act
             var result = await _booksService.GetAsync(bookId);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.GetAsync(bookId), Times.Once);
-            Assert.Equal(book, result);
+            Assert.Equal(bookEntity, result);
         }
 
         [Fact]
-        public async Task GetByAuthorAsync_Should_CallRepositoryGetByAuthor_WithCorrectAuthorId()
+        public async Task GetByIsbnAsync_ShouldReturnBookByIsbn()
         {
             // Arrange
-            var authorId = Guid.NewGuid();
-            var book = new Book();
+            var isbn = "123456";
+            var bookEntity = new BookEntity { ISBN = isbn };
 
-            _booksRepositoryMock.Setup(r => r.GetByAuthorAsync(authorId)).ReturnsAsync(book);
-
-            // Act
-            var result = await _booksService.GetByAuthorAsync(authorId);
-
-            // Assert
-            _booksRepositoryMock.Verify(r => r.GetByAuthorAsync(authorId), Times.Once);
-            Assert.Equal(book, result);
-        }
-
-        [Fact]
-        public async Task GetByIsbnAsync_Should_CallRepositoryGetByIsbn_WithCorrectIsbn()
-        {
-            // Arrange
-            var isbn = "123456789";
-            var book = new Book();
-
-            _booksRepositoryMock.Setup(r => r.GetByIsbnAsync(isbn)).ReturnsAsync(book);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetByIsbnAsync(isbn)).ReturnsAsync(bookEntity);
 
             // Act
             var result = await _booksService.GetByIsbnAsync(isbn);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.GetByIsbnAsync(isbn), Times.Once);
-            Assert.Equal(book, result);
+            Assert.Equal(bookEntity, result);
         }
 
         [Fact]
-        public async Task GetAllAsync_Should_CallRepositoryGetAll()
+        public async Task GetByAuthorAsync_ShouldReturnBookByAuthorId()
         {
             // Arrange
-            var books = new List<Book> { new Book(), new Book() };
+            var authorId = Guid.NewGuid();
+            var bookEntity = new BookEntity { Authors = new List<AuthorEntity> { new AuthorEntity { Id = authorId } } };
 
-            _booksRepositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(books);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetByAuthorAsync(authorId)).ReturnsAsync(bookEntity);
+
+            // Act
+            var result = await _booksService.GetByAuthorAsync(authorId);
+
+            // Assert
+            Assert.Equal(bookEntity, result);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnAllBooks()
+        {
+            // Arrange
+            var books = new List<BookEntity> { new BookEntity { Id = Guid.NewGuid() }, new BookEntity { Id = Guid.NewGuid() } };
+
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAllAsync()).ReturnsAsync(books);
 
             // Act
             var result = await _booksService.GetAllAsync();
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.GetAllAsync(), Times.Once);
             Assert.Equal(books, result);
         }
 
         [Fact]
-        public async Task GetPageAsync_Should_CallRepositoryGetPage_WithCorrectParams()
+        public async Task GetPageAsync_ShouldReturnPagedBooks()
         {
             // Arrange
             var pageIndex = 1;
             var pageSize = 10;
             var filter = new BooksFilter();
-            var books = new List<Book>();
+            var books = new List<BookEntity> { new BookEntity { Id = Guid.NewGuid() } };
 
-            _booksRepositoryMock.Setup(r => r.GetPageAsync(pageIndex, pageSize, filter)).ReturnsAsync(books);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetPageAsync(pageIndex, pageSize, filter)).ReturnsAsync(books);
 
             // Act
             var result = await _booksService.GetPageAsync(pageIndex, pageSize, filter);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.GetPageAsync(pageIndex, pageSize, filter), Times.Once);
             Assert.Equal(books, result);
         }
 
         [Fact]
-        public async Task GetAmountAsync_Should_CallRepositoryGetAmount_WithCorrectFilter()
+        public async Task GetAmountAsync_ShouldReturnBooksCount()
         {
             // Arrange
             var filter = new BooksFilter();
-            var amount = 100;
+            var count = 42;
 
-            _booksRepositoryMock.Setup(r => r.GetAmountAsync(filter)).ReturnsAsync(amount);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAmountAsync(filter)).ReturnsAsync(count);
 
             // Act
             var result = await _booksService.GetAmountAsync(filter);
 
             // Assert
-            _booksRepositoryMock.Verify(r => r.GetAmountAsync(filter), Times.Once);
-            Assert.Equal(amount, result);
+            Assert.Equal(count, result);
         }
     }
+
 }

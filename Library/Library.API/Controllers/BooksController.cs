@@ -18,21 +18,18 @@ namespace Library.API.Controllers
         private readonly ILogger<BooksController> _logger;
         private readonly IBooksService _booksService;
         private readonly IMapper _mapper;
-        private readonly IFileService _fileService;
         private readonly IValidator<BookContract> _booksValidator;
 
         public BooksController(
             ILogger<BooksController> logger,
             IBooksService booksService,
             IMapper mapper,
-            IFileService fileService,
             IValidator<BookContract> booksValidator
             )
         {
             _logger = logger;
             _booksService = booksService;
             _mapper = mapper;
-            _fileService = fileService;
             _booksValidator = booksValidator;
         }
 
@@ -44,13 +41,7 @@ namespace Library.API.Controllers
             await _booksValidator.ValidateAndThrowAsync(bookContract);
 
             var book = _mapper.Map<Book>(bookContract);
-            book.ImagePath = _fileService.DefaultImagePath;
-
-            if(bookContract.ImageFile != null)
-            {
-                book.ImagePath = await _fileService.SaveAsync(bookContract.ImageFile);
-            }
-
+            
             return Ok(await _booksService.AddAsync(book));
         }
 
@@ -58,7 +49,8 @@ namespace Library.API.Controllers
         [HttpPut("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> AddAuthor(Guid bookId, Guid authorId)
         {
-            return Ok(await _booksService.AddAuthorAsync(bookId, authorId));
+            await _booksService.AddAuthorAsync(bookId, authorId);
+            return Ok();
         }
 
         [Authorize(Roles = "Admin")]
@@ -67,38 +59,27 @@ namespace Library.API.Controllers
         {
             await _booksValidator.ValidateAndThrowAsync(bookContract);
 
-            var existingBook = await _booksService.GetAsync(id);
-
             var book = _mapper.Map<Book>(bookContract);
             book.Id = id;
-            book.ImagePath = existingBook.ImagePath;
-
-            if(bookContract.ImageFile != null)
-            {
-                if(!string.IsNullOrEmpty(existingBook.ImagePath))
-                {
-                    _fileService.Delete(existingBook.ImagePath);
-                }
-
-                var newImagePath = await _fileService.SaveAsync(bookContract.ImageFile);
-                book.ImagePath = newImagePath;
-            }
-
-            return Ok(await _booksService.UpdateAsync(book));
+            
+            await _booksService.UpdateAsync(book);
+            return Ok();
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            return Ok(await _booksService.DeleteAsync(id));
+            await _booksService.DeleteAsync(id);
+            return Ok();
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> DeleteAuthor(Guid bookId, Guid authorId)
         {
-            return Ok(await _booksService.DeleteAuthorAsync(bookId, authorId));
+            await _booksService.DeleteAuthorAsync(bookId, authorId);
+            return Ok();
         }
 
         [HttpGet("{id}")]

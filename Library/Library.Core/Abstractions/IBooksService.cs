@@ -1,19 +1,22 @@
-﻿using Library.Core.Models;
+﻿using Library.Core.Entities;
+using Library.Core.Models;
 
 namespace Library.Core.Abstractions
 {
     public interface IBooksService
     {
         Task<Guid> AddAsync(Book book);
-        Task<Guid> AddAuthorAsync(Guid bookId, Guid authorId);
-        Task<Guid> DeleteAsync(Guid id);
-        Task<Guid> DeleteAuthorAsync(Guid bookId, Guid authorId);
-        Task<Book> GetAsync(Guid id);
-        Task<IEnumerable<Book>> GetAllAsync();
-        Task<Book> GetByIsbnAsync(string isbn);
-        Task<Book> GetByAuthorAsync(Guid authorId);
-        Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize, BooksFilter filter);
+        Task AddAuthorAsync(Guid bookId, Guid authorId);
+        Task UpdateAsync(Book book);
+        Task DeleteAsync(Guid id);
+        Task DeleteAuthorAsync(Guid bookId, Guid authorId);
+
+        Task<BookEntity> GetAsync(Guid id);
+        Task<BookEntity> GetByAuthorAsync(Guid authorId);
+        Task<BookEntity> GetByIsbnAsync(string isbn);
+
+        Task<IEnumerable<BookEntity>> GetAllAsync();
+        Task<IEnumerable<BookEntity>> GetPageAsync(int pageIndex, int pageSize, BooksFilter filter);
         Task<int> GetAmountAsync(BooksFilter filter);
-        Task<Guid> UpdateAsync(Book book);
     }
 }

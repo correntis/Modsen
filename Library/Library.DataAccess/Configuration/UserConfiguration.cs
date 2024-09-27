@@ -1,4 +1,4 @@
-﻿using Library.DataAccess.Entities;
+﻿using Library.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,6 +12,13 @@ namespace Library.DataAccess.Configuration
 
             builder.HasIndex(u => u.Email)
                 .IsUnique();
+
+            builder.Property(u => u.UserName)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            builder.Property(u => u.Email)
+                .IsRequired();
 
             builder.Property(u => u.Id)
                 .HasDefaultValueSql("gen_random_uuid()");

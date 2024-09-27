@@ -33,7 +33,8 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> AddBook(Guid userId, Guid bookId)
         {
-            return Ok(await _usersService.AddBookAsync(userId, bookId));
+            await _usersService.IssueBookAsync(userId, bookId);
+            return Ok();
         }
 
         [HttpPut("{id}")]
@@ -45,21 +46,24 @@ namespace Library.API.Controllers
             var user = _mapper.Map<User>(userContract);
             user.Id = id;
 
-            return Ok(await _usersService.UpdateAsync(user));
+            await _usersService.UpdateAsync(user);
+            return Ok();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            return Ok(await _usersService.DeleteAsync(id));
+            await _usersService.DeleteAsync(id);
+            return Ok();
         }
 
         [HttpDelete("{userId}/books/{bookId}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> DeleteBook(Guid userId, Guid bookId)
         {
-            return Ok(await _usersService.AddBookAsync(userId, bookId));
+            await _usersService.DeleteBookAsync(userId, bookId);
+            return Ok();
         }
 
         [HttpGet("{userId}")]

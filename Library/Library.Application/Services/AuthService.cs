@@ -1,4 +1,6 @@
-﻿using Library.Core.Abstractions;
+﻿using AutoMapper;
+using Library.Core.Abstractions;
+using Library.Core.Entities;
 using Library.Core.Exceptions;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Identity;
@@ -7,55 +9,63 @@ using Microsoft.Extensions.Logging;
 namespace Library.Application.Services
 {
     public class AuthService : IAuthService
-    { 
-        private readonly IUsersRepository _usersRepository;
+    {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ITokenService _tokenService;
         private readonly ITokenCacheService _tokenCache;
+        private readonly IMapper _mapper;
 
         public AuthService(
-            IUsersRepository usersRepository,
+            IUnitOfWork unitOfWork,
             ITokenService tokenService,
-            ITokenCacheService tokenCache
+            ITokenCacheService tokenCache,
+            IMapper mapper
             )
         {
-            _usersRepository = usersRepository;
+            _unitOfWork = unitOfWork;
             _tokenService = tokenService;
             _tokenCache = tokenCache;
+            _mapper = mapper;
         }
 
-        public async Task<(User, UserToken)> Login(string email, string password)
+        public async Task<(UserEntity, UserToken)> Login(string email, string password)
         {
-            var user = await _usersRepository.GetByEmailAsync(email) 
-                ?? throw new NotFoundException("User not found.");
-            
+            var userEntity = await _unitOfWork.UsersRepository.GetByEmailAsync(email)
+                ?? throw new NotFoundException();
+
             var passwordHasher = new PasswordHasher<User>();
-            if(passwordHasher.VerifyHashedPassword(null, user.PasswordHash, password) == PasswordVerificationResult.Failed)
+            var verifyResult = passwordHasher.VerifyHashedPassword(null, userEntity.PasswordHash, password);
+            if(verifyResult == PasswordVerificationResult.Failed)
             {
                 throw new InvalidPasswordException("Invalid password.");
             }
 
-            return (user, await CreateTokensAsync(user.Id, user.Roles.Select(ur => ur.Name).ToList()));
+            var tokens = await CreateTokensAsync(userEntity.Id, userEntity.Roles.Select(ur => ur.Name).ToArray());
+
+            return (userEntity, tokens);
         }
 
         public async Task<UserToken> Register(string username, string email, string password)
         {
-            var user = new User
+            var existedUser = await _unitOfWork.UsersRepository.GetByEmailAsync(email)
+                ?? throw new EntityAlreadyExistsException();
+
+            var defaultRoles = new string[] { "User" };
+            var userEntity = new UserEntity()
             {
                 UserName = username,
                 Email = email,
-                PasswordHash = new PasswordHasher<User>().HashPassword(null, password),
+                PasswordHash = new PasswordHasher<UserEntity>().HashPassword(null, password),
             };
 
-            _ = await _usersRepository.GetByEmailAsync(email)
-                ?? throw new EntityAlreadyExistsException("User already exists.");
+            await _unitOfWork.UsersRepository.AddAsync(userEntity);
+            await _unitOfWork.UsersRepository.AddRolesAsync(userEntity, defaultRoles);
+            await _unitOfWork.SaveChangesAsync();
 
-            var guid = await _usersRepository.AddAsync(user);
-            await _usersRepository.AddRolesAsync(guid, ["User"]);
-
-            return await CreateTokensAsync(guid, ["User"]);
+            return await CreateTokensAsync(userEntity.Id, defaultRoles);
         }
 
-        private async Task<UserToken> CreateTokensAsync(Guid userId, List<string> roles)
+        private async Task<UserToken> CreateTokensAsync(Guid userId, string[] roles)
         {
             var accessToken = _tokenService.CreateAccessToken(userId, roles);
             var refreshToken = _tokenService.CreateRefreshToken();

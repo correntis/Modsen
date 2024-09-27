@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY ["Library.API/Library.API.csproj", "Library.API/"]
+COPY ["Library.Core/Library.Core.csproj", "Library.Core/"]
 COPY ["Library.DataAccess/Library.DataAccess.csproj", "Library.DataAccess/"]
 
 RUN dotnet restore "Library.API/Library.API.csproj"

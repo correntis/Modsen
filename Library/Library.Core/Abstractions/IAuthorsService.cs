@@ -1,3 +1,4 @@
+using Library.Core.Entities;
 using Library.Core.Models;
 
 namespace Library.Core.Abstractions
@@ -5,10 +6,11 @@ namespace Library.Core.Abstractions
     public interface IAuthorsService
     {
         Task<Guid> AddAsync(Author author);
-        Task<Guid> DeleteAsync(Guid id);
-        Task<Author> GetAsync(Guid id);
-        Task<IEnumerable<Author>> GetAllAsync();
-        Task<IEnumerable<Author>> GetPageAsync(int pageIndex, int pageSize);
-        Task<Guid> UpdateAsync(Author author);
+        Task UpdateAsync(Author author);
+        Task DeleteAsync(Guid id);
+        
+        Task<AuthorEntity> GetAsync(Guid id);
+        Task<IEnumerable<AuthorEntity>> GetAllAsync();
+        Task<IEnumerable<AuthorEntity>> GetPageAsync(int pageIndex, int pageSize);
     }
 }

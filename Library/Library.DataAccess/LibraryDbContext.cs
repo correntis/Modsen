@@ -1,5 +1,5 @@
 ﻿using Library.DataAccess.Configuration;
-using Library.DataAccess.Entities;
+using Library.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.DataAccess

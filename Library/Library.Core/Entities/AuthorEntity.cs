@@ -1,4 +1,4 @@
-﻿namespace Library.DataAccess.Entities
+﻿namespace Library.Core.Entities
 {
     public class AuthorEntity
     {

@@ -8,7 +8,7 @@ namespace Library.Application.Services
     {
         private readonly IWebHostEnvironment _environment;
         private string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
-        public string DefaultImagePath => "default_image.jpg";
+        private string defaultImagePath => "default_image.jpg";
 
         public FileService(
             IWebHostEnvironment environment
@@ -19,7 +19,10 @@ namespace Library.Application.Services
 
         public async Task<string> SaveAsync(IFormFile imageFile)
         {
-            ArgumentNullException.ThrowIfNull(imageFile);
+            if (imageFile is null)
+            {
+                return defaultImagePath;
+            }
 
             var contentPath = _environment.ContentRootPath;
             var path = Path.Combine(contentPath, "Uploads");
@@ -45,7 +48,7 @@ namespace Library.Application.Services
                 throw new ArgumentNullException(nameof(fileNameWithExtension));
             }
 
-            if (fileNameWithExtension == DefaultImagePath)
+            if (fileNameWithExtension == defaultImagePath)
             {
                 return;
             }
@@ -60,6 +63,5 @@ namespace Library.Application.Services
 
             File.Delete(path);
         }
-
     }
 }

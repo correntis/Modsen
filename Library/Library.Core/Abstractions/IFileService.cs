@@ -9,7 +9,6 @@ namespace Library.Core.Abstractions
 {
     public interface IFileService
     {
-        string DefaultImagePath { get; }
         void Delete(string fileNameWithExtension);
         Task<string> SaveAsync(IFormFile imageFile);
     }

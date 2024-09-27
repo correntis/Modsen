@@ -19,7 +19,7 @@ namespace Library.Application.Services
             _jwtOptions = jwtOptions;
         }
 
-        public string CreateAccessToken(Guid userId, List<string> userRoles)
+        public string CreateAccessToken(Guid userId, string[] userRoles)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.Secret));
 

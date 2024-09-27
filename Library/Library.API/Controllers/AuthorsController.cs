@@ -50,14 +50,16 @@ namespace Library.API.Controllers
             var author = _mapper.Map<Author>(authorContract);
             author.Id = id;
 
-            return Ok(await _authorsService.UpdateAsync(author));
+            await _authorsService.UpdateAsync(author);
+            return Ok();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            return Ok(await _authorsService.DeleteAsync(id));
+            await _authorsService.DeleteAsync(id);
+            return Ok();
         }
 
         [HttpGet("{id}")]

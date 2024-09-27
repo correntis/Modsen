@@ -1,123 +1,141 @@
 ﻿using AutoMapper;
 using Library.Core.Abstractions;
+using Library.Core.Entities;
 using Library.Core.Exceptions;
 using Library.Core.Models;
+using System.Net;
 
 namespace Library.Application.Services
 {
     public class BooksService : IBooksService
     {
-        private readonly IBooksRepository _booksRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IFileService _fileService;
 
         public BooksService(
-            IBooksRepository booksRepository,
-            IMapper mapper
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IFileService fileService
             )
         {
-            _booksRepository = booksRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _fileService = fileService;
         }
 
         public async Task<Guid> AddAsync(Book book)
         {
-            book.TakenAt = DateTime.MinValue;
-            book.ReturnBy = DateTime.MinValue;
-            return await _booksRepository.AddAsync(book);
+            string imagePath = await _fileService.SaveAsync(book.ImageFile);
+
+            var bookEntity = _mapper.Map<BookEntity>(book);
+            bookEntity.TakenAt = DateTime.MinValue;
+            bookEntity.ReturnBy = DateTime.MinValue;
+            bookEntity.ImagePath = imagePath;
+
+            await _unitOfWork.BooksRepository.AddAsync(bookEntity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return bookEntity.Id;
         }
 
-        public async Task<Guid> AddAuthorAsync(Guid bookId, Guid authorId)
+        public async Task AddAuthorAsync(Guid bookId, Guid authorId)
         {
-            var guid = await _booksRepository.AddAuthorAsync(bookId, authorId);
+            var bookEntity = await _unitOfWork.BooksRepository.GetAsync(bookId);
+            ThrowNotFoundIfNull(bookEntity);
 
-            ThrowNotFoundIfEmptyGuid(guid);
+            var authorEntity = await _unitOfWork.AuthorsRepository.GetAsync(authorId);
+            ThrowNotFoundIfNull(bookEntity);
 
-            return guid;
+            bookEntity.Authors.Add(authorEntity);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Guid> UpdateAsync(Book book)
+        public async Task UpdateAsync(Book book)
         {
-            var guid = await _booksRepository.UpdateAsync(book);
+            var bookEntity = await _unitOfWork.BooksRepository.GetAsync(book.Id);
+            ThrowNotFoundIfNull(bookEntity);
 
-            ThrowNotFoundIfEmptyGuid(guid);
+            bookEntity.ISBN = book.ISBN;
+            bookEntity.Name = book.Name;
+            bookEntity.Description = book.Description;
+            bookEntity.Genre = book.Genre;
+            bookEntity.TakenAt = book.TakenAt;
+            bookEntity.ReturnBy = book.ReturnBy;
 
-            return guid;
+            if(book.ImageFile != null)
+            {
+                bookEntity.ImagePath = await _fileService.SaveAsync(book.ImageFile);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Guid> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
-            var guid = await _booksRepository.DeleteAsync(id);
+            var bookEntity = await _unitOfWork.BooksRepository.GetAsync(id);
+            ThrowNotFoundIfNull(bookEntity);
 
-            ThrowNotFoundIfEmptyGuid(guid);
-
-            return guid;
+            _unitOfWork.BooksRepository.Delete(bookEntity);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Guid> DeleteAuthorAsync(Guid bookId, Guid authorId)
+        public async Task DeleteAuthorAsync(Guid bookId, Guid authorId)
         {
-            var guid = await _booksRepository.DeleteAuthorAsync(bookId, authorId);
+            var bookEntity = await _unitOfWork.BooksRepository.GetAsync(bookId);
+            ThrowNotFoundIfNull(bookEntity);
 
-            ThrowNotFoundIfEmptyGuid(guid);
+            var authorEntity = await _unitOfWork.AuthorsRepository.GetAsync(authorId);
+            ThrowNotFoundIfNull(authorEntity);
 
-            return guid;
+            bookEntity.Authors.Remove(authorEntity);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Book> GetAsync(Guid id)
+        public async Task<BookEntity> GetAsync(Guid id)
         {
-            var book =  await _booksRepository.GetAsync(id);
+            var bookEntity = await _unitOfWork.BooksRepository.GetAsync(id);
+            ThrowNotFoundIfNull(bookEntity);
 
-            ThrowNotFoundIfBookIsNull(book);
-
-            return book;
+            return bookEntity;
         }
 
-        public async Task<Book> GetByAuthorAsync(Guid authorId)
+        public async Task<BookEntity> GetByAuthorAsync(Guid authorId)
         {
-            var book = await _booksRepository.GetByAuthorAsync(authorId);
-            
-            ThrowNotFoundIfBookIsNull(book);
+            var bookEntity = await _unitOfWork.BooksRepository.GetByAuthorAsync(authorId);
+            ThrowNotFoundIfNull(bookEntity);
 
-            return book;
+            return bookEntity;
         }
 
-        public async Task<Book> GetByIsbnAsync(string isbn)
+        public async Task<BookEntity> GetByIsbnAsync(string isbn)
         {
-            var book =  await _booksRepository.GetByIsbnAsync(isbn);
+            var bookEntity = await _unitOfWork.BooksRepository.GetByIsbnAsync(isbn);
+            ThrowNotFoundIfNull(bookEntity);
 
-            ThrowNotFoundIfBookIsNull(book);
-
-            return book;
+            return bookEntity;
         }
 
-        public async Task<IEnumerable<Book>> GetAllAsync()
+        public async Task<IEnumerable<BookEntity>> GetAllAsync()
         {
-            return await _booksRepository.GetAllAsync();
+            return await _unitOfWork.BooksRepository.GetAllAsync();
         }
 
-        public async Task<IEnumerable<Book>> GetPageAsync(int pageIndex, int pageSize, BooksFilter filter)
+        public async Task<IEnumerable<BookEntity>> GetPageAsync(int pageIndex, int pageSize, BooksFilter filter)
         {
-            return await _booksRepository.GetPageAsync(pageIndex, pageSize, filter);
+            return await _unitOfWork.BooksRepository.GetPageAsync(pageIndex, pageSize, filter);
         }
 
         public async Task<int> GetAmountAsync(BooksFilter filter)
         {
-            return await _booksRepository.GetAmountAsync(filter);
+            return await _unitOfWork.BooksRepository.GetAmountAsync(filter);
         }
 
-
-        private void ThrowNotFoundIfEmptyGuid(Guid guid)
+        private void ThrowNotFoundIfNull<T>(T entity)
         {
-            if(guid == Guid.Empty)
+            if(entity is null)
             {
-                throw new NotFoundException("User not found.");
-            }
-        }
-
-        private void ThrowNotFoundIfBookIsNull(Book author)
-        {
-            if(author is null)
-            {
-                throw new NotFoundException("Book not found.");
+                throw new NotFoundException();
             }
         }
     }

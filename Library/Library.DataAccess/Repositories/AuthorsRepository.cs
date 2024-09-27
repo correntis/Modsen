@@ -1,106 +1,50 @@
-﻿using AutoMapper;
-using Library.Core.Abstractions;
-using Library.Core.Models;
-using Library.DataAccess.Entities;
+﻿using Library.Core.Abstractions;
+using Library.Core.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Library.DataAccess.Repositories
 {
     public class AuthorsRepository : IAuthorsRepository
     {
         private readonly LibraryDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly ILogger<AuthorsRepository> _logger;
 
         public AuthorsRepository(
-            LibraryDbContext context,
-            IMapper mapper,
-            ILogger<AuthorsRepository> logger)
+            LibraryDbContext context
+            )
         {
             _context = context;
-            _mapper = mapper;
-            _logger = logger;
         }
 
-        public async Task<Guid> AddAsync(Author author)
+        public async Task AddAsync(AuthorEntity author)
         {
-            var authorEntity = _mapper.Map<AuthorEntity>(author);
-
-            _context.Authors.Add(authorEntity);
-            await _context.SaveChangesAsync();
-
-            return authorEntity.Id;
+            await _context.Authors.AddAsync(author);
         }
 
-        public async Task<Guid> UpdateAsync(Author author)
+        public void Delete(AuthorEntity author)
         {
-            var authorEntity = await _context.Authors
-                .FirstOrDefaultAsync(a => a.Id == author.Id);
-
-            if(authorEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            authorEntity.Name = author.Name;
-            authorEntity.Surname = author.Surname;
-            authorEntity.Birthday = author.Birthday;
-            authorEntity.Country = author.Country;
-
-            await _context.SaveChangesAsync();
-
-            return authorEntity.Id;
+            _context.Authors.Remove(author);
         }
 
-        public async Task<Guid> DeleteAsync(Guid id)
+        public async Task<AuthorEntity> GetAsync(Guid id)
         {
-            var authorEntity = await _context.Authors
+            return await _context.Authors
                 .FirstOrDefaultAsync(a => a.Id == id);
-
-            if(authorEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            _context.Authors.Remove(authorEntity);
-            await _context.SaveChangesAsync();
-
-            return id;
         }
 
-        public async Task<Author> GetAsync(Guid id)
+        public async Task<IEnumerable<AuthorEntity>> GetAllAsync()
         {
-            var authorEntity = await _context.Authors
-                .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if(authorEntity is null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<Author>(authorEntity);
-        }
-
-        public async Task<IEnumerable<Author>> GetAllAsync()
-        {
-            var authorEntities = await _context.Authors
+            return await _context.Authors
                 .AsNoTracking()
                 .ToListAsync();
-
-            return _mapper.Map<List<Author>>(authorEntities);
         }
 
-        public async Task<IEnumerable<Author>> GetPageAsync(int pageIndex, int pageSize)
+        public async Task<IEnumerable<AuthorEntity>> GetPageAsync(int pageIndex, int pageSize)
         {
-            var authorEntities = await _context.Authors
+            return await _context.Authors
                 .AsNoTracking()
                 .Skip(pageIndex * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-
-            return _mapper.Map<List<Author>>(authorEntities);
         }
     }
 }

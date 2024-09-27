@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Library.Core.Models;
-using Library.DataAccess.Entities;
+using Library.Core.Entities;
 using Microsoft.AspNetCore.Identity.Data;
 
 namespace Library.API.Profiles

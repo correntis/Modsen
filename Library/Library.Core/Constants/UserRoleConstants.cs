@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library.Core.Models
+namespace Library.Core.Constants
 {
-    public class UserRole
+    public static class UserRoleConstants
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
+        public const int MAX_NAME_LENGTH = 50;
     }
 }

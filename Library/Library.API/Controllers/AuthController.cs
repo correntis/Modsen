@@ -1,10 +1,7 @@
-﻿using AutoMapper;
-using FluentValidation;
+﻿using FluentValidation;
 using Library.API.Contracts;
-using Library.Core.Exceptions;
 using Library.Core.Abstractions;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace Library.API.Controllers
 {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Library.Core.Abstractions;
+using Library.Core.Entities;
 using Library.Core.Exceptions;
 using Library.Core.Models;
 
@@ -7,73 +8,73 @@ namespace Library.Application.Services
 {
     public class AuthorsService : IAuthorsService
     {
-        private readonly IAuthorsRepository _authorsRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public AuthorsService(
-            IAuthorsRepository authorsRepository,
+            IUnitOfWork unitOfWork,
             IMapper mapper
             )
         {
-            _authorsRepository = authorsRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<Guid> AddAsync(Author author)
         {
-            return await _authorsRepository.AddAsync(author);
+            var authorEntity = _mapper.Map<AuthorEntity>(author);
+
+            await _unitOfWork.AuthorsRepository.AddAsync(authorEntity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return authorEntity.Id;
         }
 
-        public async Task<Guid> UpdateAsync(Author author)
+        public async Task UpdateAsync(Author author)
         {
-            var guid = await _authorsRepository.UpdateAsync(author);
+            var authorEntity = await _unitOfWork.AuthorsRepository.GetAsync(author.Id);
+            ThrowNotFoundIfNull(authorEntity);
 
-            ThrowNotFoundIfEmptyGuid(guid);
+            authorEntity.Name = author.Name;
+            authorEntity.Surname = author.Surname;
+            authorEntity.Birthday = author.Birthday;
+            authorEntity.Country = author.Country;
 
-            return guid;
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Guid> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
-            var guid =  await _authorsRepository.DeleteAsync(id);
+            var authorEntity = await _unitOfWork.AuthorsRepository.GetAsync(id);
+            ThrowNotFoundIfNull(authorEntity);
 
-            ThrowNotFoundIfEmptyGuid(guid);
-
-            return guid;
+            _unitOfWork.AuthorsRepository.Delete(authorEntity);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Author> GetAsync(Guid id)
+        public async Task<AuthorEntity> GetAsync(Guid id)
         {
-            var author = await _authorsRepository.GetAsync(id);
+            var authorEnity = await _unitOfWork.AuthorsRepository.GetAsync(id);
+            ThrowNotFoundIfNull(authorEnity);
 
-            ThrowNotFoundIfAuthorIsNull(author);
-
-            return author;
+            return authorEnity;
         }
 
-        public async Task<IEnumerable<Author>> GetAllAsync()
+        public async Task<IEnumerable<AuthorEntity>> GetAllAsync()
         {
-            return await _authorsRepository.GetAllAsync();
+            return await _unitOfWork.AuthorsRepository.GetAllAsync();
         }
 
-        public async Task<IEnumerable<Author>> GetPageAsync(int pageIndex, int pageSize)
+        public async Task<IEnumerable<AuthorEntity>> GetPageAsync(int pageIndex, int pageSize)
         {
-            return await _authorsRepository.GetPageAsync(pageIndex, pageSize);
+            return await _unitOfWork.AuthorsRepository.GetPageAsync(pageIndex, pageSize);
         }
 
-        private void ThrowNotFoundIfEmptyGuid(Guid guid)
+        private void ThrowNotFoundIfNull<T>(T entity)
         {
-            if(guid == Guid.Empty)
+            if(entity is null)
             {
-                throw new NotFoundException("Author not found.");
-            }
-        }
-
-        private void ThrowNotFoundIfAuthorIsNull(Author author)
-        {
-            if(author is null)
-            {
-                throw new NotFoundException("Author not found.");
+                throw new NotFoundException();
             }
         }
     }

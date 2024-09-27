@@ -61,6 +61,7 @@ services.AddAuthentication(configuration);
 services.AddScoped<IBooksRepository, BooksRepository>();
 services.AddScoped<IAuthorsRepository, AuthorsRepository>();
 services.AddScoped<IUsersRepository, UsersRepository>();
+services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 services.AddScoped<IBooksService, BooksService>();
 services.AddScoped<IAuthorsService, AuthorsService>();

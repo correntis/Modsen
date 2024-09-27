@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Library.API.Contracts;
 using Library.Core.Models;
-using Library.DataAccess.Entities;
+using Library.Core.Entities;
 
 namespace Library.API.Profiles
 {

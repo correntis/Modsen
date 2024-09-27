@@ -1,184 +1,57 @@
-﻿using AutoMapper;
-using Library.Core.Abstractions;
-using Library.Core.Models;
-using Library.DataAccess.Entities;
+﻿using Library.Core.Abstractions;
+using Library.Core.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Library.DataAccess.Repositories
 {
     public class UsersRepository : IUsersRepository
     {
         private readonly LibraryDbContext _context;
-        private readonly ILogger<BooksRepository> _logger;
-        private readonly IMapper _mapper;
 
         public UsersRepository(
-            LibraryDbContext context,
-            ILogger<BooksRepository> logger,
-            IMapper mapper,
-            IBooksRepository booksRepository
+            LibraryDbContext context
             )
         {
             _context = context;
-            _logger = logger;
-            _mapper = mapper;
         }
 
-        public async Task<Guid> AddAsync(User user)
+        public async Task AddAsync(UserEntity user)
         {
-            var userEntity = _mapper.Map<UserEntity>(user);
-
-            _context.Users.Add(userEntity);
-            await _context.SaveChangesAsync();
-
-            return userEntity.Id;
+           await _context.Users.AddAsync(user);
         }
 
-        public async Task<Guid> AddBookAsync(Guid userId, Guid bookId, DateTime takenAt, DateTime returnBy)
+        public async Task AddRolesAsync(UserEntity entity, string[] userRoles)
         {
-            var bookEntity = await _context.Books
-                .FirstOrDefaultAsync(b => b.Id == bookId);
-
-            if(bookEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            var userEntity = await _context.Users
-                .Include(u => u.Books)
-                .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if(userEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            bookEntity.TakenAt = takenAt;
-            bookEntity.ReturnBy = returnBy;
-
-            userEntity.Books.Add(bookEntity);
-            await _context.SaveChangesAsync();
-
-            return userEntity.Id;
-        }
-
-        public async Task<Guid> AddRolesAsync(Guid userId, string[] userRoles)
-        {
-            var userEntity = await _context.Users
-                .Include(u => u.Roles)
-                .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if(userEntity is null)
-            {
-                return Guid.Empty;
-            }
-
             var userRolesEntities = await _context.UserRoles
                 .Where(ur => userRoles.Any(role => role == ur.Name))
                 .ToListAsync();
 
             foreach (var role in userRolesEntities)
             {
-                userEntity.Roles.Add(role);
+                entity.Roles.Add(role);
             }
-
-            await _context.SaveChangesAsync();
-
-            return userEntity.Id;
         }
 
-        public async Task<Guid> UpdateAsync(User user)
+        public void Delete(UserEntity entity)
         {
-            var userEntity = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == user.Id);
-
-            if(userEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            userEntity.UserName = user.UserName;
-            userEntity.Email = user.Email;
-
-            await _context.SaveChangesAsync();
-
-            return userEntity.Id;
+            _context.Users.Remove(entity);
         }
 
-        public async Task<Guid> DeleteAsync(Guid id)
+        public async Task<UserEntity> GetAsync(Guid id)
         {
-            var userEntity = await _context.Users
+            return await _context.Users
                 .Include(u => u.Books)
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Id == id);
-
-            if(userEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            _context.Users.Remove(userEntity);
-            await _context.SaveChangesAsync();
-
-            return userEntity.Id;
         }
 
-        public async Task<Guid> DeleteBookAsync(Guid userId, Guid bookId)
+        public async Task<UserEntity> GetByEmailAsync(string email)
         {
-            var bookEntity = await _context.Books
-                .FirstOrDefaultAsync(b => b.Id == bookId);
-
-            if(bookEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            var userEntity = await _context.Users
-                .Include(u => u.Books)
-                .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if(userEntity is null)
-            {
-                return Guid.Empty;
-            }
-
-            userEntity.Books.Remove(bookEntity);
-            await _context.SaveChangesAsync();
-
-            return userEntity.Id;
-        }
-
-        public async Task<User> GetAsync(Guid id)
-        {
-            var userEntity = await _context.Users
-                .Include(u => u.Books)
-                .Include(u => u.Roles)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if(userEntity is null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<User>(userEntity);
-        }
-
-        public async Task<User> GetByEmailAsync(string email)
-        {
-            var userEntity = await _context.Users
+            return await _context.Users
                 .Include(u => u.Roles)
                 .Include(u => u.Books)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email);
 
-            if(userEntity is null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<User>(userEntity);
         }
     }
 }

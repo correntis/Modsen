@@ -42,7 +42,7 @@ namespace Library.API.Middleware
             return null;
         }
 
-        private List<string> GetUserRoles(string accessToken)
+        private string[] GetUserRoles(string accessToken)
         {
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(accessToken);
@@ -50,7 +50,7 @@ namespace Library.API.Middleware
             return token.Claims
                 .Where(c => c.Type == ClaimTypes.Role)
                 .Select(c => c.Value)
-                .ToList();
+                .ToArray();
         }
 
         private void UpdateAccessToken(string accessToken, HttpContext context)

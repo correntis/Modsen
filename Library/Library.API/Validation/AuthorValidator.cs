@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Library.API.Contracts;
+using Library.Core.Constants;
 using Library.Core.Models;
 
 namespace Library.API.Validation
@@ -11,19 +12,19 @@ namespace Library.API.Validation
             RuleFor(a => a.Name)
                 .NotNull()
                 .NotEmpty()
-                .MaximumLength(Author.MAX_NAME_LENGTH)
+                .MaximumLength(AuthorConstants.MAX_NAME_LENGTH)
                 .WithMessage("Name too long.");
 
             RuleFor(a => a.Surname)
                 .NotNull()
                 .NotEmpty()
-                .MaximumLength(Author.MAX_SURNAME_LENGTH)
+                .MaximumLength(AuthorConstants.MAX_SURNAME_LENGTH)
                 .WithMessage("Surname too long.");
 
             RuleFor(a => a.Country)
                 .NotNull()
                 .NotEmpty()
-                .MaximumLength(Author.MAX_COUNTRY_LENGTH)
+                .MaximumLength(AuthorConstants.MAX_COUNTRY_LENGTH)
                 .WithMessage("Country too long.");
 
             RuleFor(a => a.Birthday)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library.DataAccess.Entities
+namespace Library.Core.Entities
 {
     public class BookEntity
     {

@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Library.API.Contracts;
+using Library.Core.Constants;
 using Library.Core.Models;
 
 namespace Library.API.Validation
@@ -17,7 +18,7 @@ namespace Library.API.Validation
             RuleFor(l => l.UserName)
                 .NotNull()
                 .NotEmpty()
-                .MaximumLength(User.MAX_USERNAME_LENGTH);
+                .MaximumLength(UserConstants.MAX_USERNAME_LENGTH);
         }
     }
 }

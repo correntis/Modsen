@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Library.DataAccess.Entities;
+using Library.Core.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Library.Core.Models;
+using Library.Core.Constants;
 
 namespace Library.DataAccess.Configuration
 {
@@ -14,7 +14,7 @@ namespace Library.DataAccess.Configuration
                 .HasDefaultValueSql("gen_random_uuid()");
 
             builder.Property(ur => ur.Name)
-                .HasMaxLength(UserRole.MAX_NAME_LENGTH);
+                .HasMaxLength(UserRoleConstants.MAX_NAME_LENGTH);
         }
     }
 }

@@ -1,112 +1,98 @@
-using AutoMapper;
-using Library.Core.Models;
 using Library.DataAccess;
-using Library.DataAccess.Entities;
+using Library.Core.Entities;
 using Library.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace Library.Tests.Unit
 {
     public class BooksRepositoryTests
     {
-        [Fact]
-        public async Task AddAsync_ShouldAddBookAndReturnBookId()
+        private readonly LibraryDbContext _context;
+        private readonly BooksRepository _repository;
+
+        public BooksRepositoryTests()
         {
-            // Arrange
-            var context = GetInMemoryDbContext();
-            var mapper = GetMapper();
-            var logger = Mock.Of<ILogger<BooksRepository>>();
+            var options = new DbContextOptionsBuilder<LibraryDbContext>()
+                .UseInMemoryDatabase(databaseName: "LibraryDb")
+                .Options;
 
-            var booksRepository = new BooksRepository(context, logger, mapper);
-
-            var newBook = new Book
-            {
-                Name = "Test Book",
-                ISBN = "1234567890",
-                Description = "Test Description",
-                Genre = "Test Genre",
-                ImagePath = "default_image.jpg"
-            };
-
-            // Act
-            var result = await booksRepository.AddAsync(newBook);
-
-            // Assert
-            var addedBook = await context.Books.FindAsync(result);
-            Assert.NotNull(addedBook);
-            Assert.Equal(newBook.Name, addedBook.Name);
-            Assert.Equal(newBook.ISBN, addedBook.ISBN);
+            _context = new LibraryDbContext(options);
+            _repository = new BooksRepository(_context);
         }
 
         [Fact]
-        public async Task GetAsync_ShouldReturnBook_WhenBookExists()
+        public async Task AddAsync_ShouldAddBookToDatabase()
         {
             // Arrange
-            var context = GetInMemoryDbContext();
-            var mapper = GetMapper();
-            var logger = Mock.Of<ILogger<BooksRepository>>();
-
-            var booksRepository = new BooksRepository(context, logger, mapper);
-
             var bookEntity = new BookEntity
             {
                 Name = "Test Book",
                 ISBN = "1234567890",
-                Description = "Test Description",
                 Genre = "Test Genre",
                 ImagePath = "default_image.jpg"
             };
 
-            await context.Books.AddAsync(bookEntity);
-            await context.SaveChangesAsync();
-
             // Act
-            var result = await booksRepository.GetAsync(bookEntity.Id);
+            await _repository.AddAsync(bookEntity);
+            await _context.SaveChangesAsync();
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(bookEntity.Name, result.Name);
-            Assert.Equal(bookEntity.ISBN, result.ISBN);
+            var addedBook = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookEntity.Id);
+            Assert.NotNull(addedBook);
+            Assert.Equal(bookEntity.Name, addedBook.Name);
+            Assert.Equal(bookEntity.ISBN, addedBook.ISBN);
+            Assert.Equal(bookEntity.Genre, addedBook.Genre);
+            Assert.Equal(bookEntity.ImagePath, addedBook.ImagePath);
         }
 
         [Fact]
-        public async Task GetAsync_ShouldReturnNull_WhenBookDoesNotExist()
+        public async Task DeleteAsync_ShouldRemoveBookFromDatabase()
         {
             // Arrange
-            var context = GetInMemoryDbContext();
-            var mapper = GetMapper();
-            var logger = Mock.Of<ILogger<BooksRepository>>();
+            var bookEntity = new BookEntity
+            {
+                Name = "Test Book",
+                ISBN = "1234567890",
+                Genre = "Test Book",
+                ImagePath = "default_image.jpg"
+            };
 
-            var booksRepository = new BooksRepository(context, logger, mapper);
-
-            var nonExistingBookId = Guid.NewGuid();
+            await _context.Books.AddAsync(bookEntity);
+            await _context.SaveChangesAsync();
 
             // Act
-            var result = await booksRepository.GetAsync(nonExistingBookId);
+            _repository.Delete(bookEntity);
+            await _context.SaveChangesAsync();
 
             // Assert
-            Assert.Null(result);
+            var deletedBook = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookEntity.Id);
+            Assert.Null(deletedBook);
         }
 
-        private LibraryDbContext GetInMemoryDbContext()
+        [Fact]
+        public async Task GetAsync_ShouldReturnBookById()
         {
-            var options = new DbContextOptionsBuilder<LibraryDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-
-            return new LibraryDbContext(options);
-        }
-
-        private IMapper GetMapper()
-        {
-            var config = new MapperConfiguration(cfg =>
+            // Arrange
+            var bookEntity = new BookEntity
             {
-                cfg.CreateMap<Book, BookEntity>().ReverseMap();
-            });
+                Name = "Test Book",
+                ISBN = "1234567890",
+                Genre = "Test Book",
+                ImagePath = "default_image.jpg"
+            };
 
-            return config.CreateMapper();
+            await _context.Books.AddAsync(bookEntity);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _repository.GetAsync(bookEntity.Id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(bookEntity.Id, result.Id);
+            Assert.Equal(bookEntity.Name, result.Name);
+            Assert.Equal(bookEntity.ISBN, result.ISBN);
+            Assert.Equal(bookEntity.Genre, result.Genre);
         }
     }
 }

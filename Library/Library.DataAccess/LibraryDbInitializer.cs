@@ -1,13 +1,5 @@
-﻿using Library.DataAccess.Entities;
-using Microsoft.AspNetCore.Http;
+﻿using Library.Core.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Library.DataAccess
 {

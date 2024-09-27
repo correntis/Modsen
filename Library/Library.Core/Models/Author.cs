@@ -2,10 +2,6 @@
 {
     public class Author
     {
-        public const int MAX_NAME_LENGTH = 50;
-        public const int MAX_SURNAME_LENGTH = 50;
-        public const int MAX_COUNTRY_LENGTH = 50;
-
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }

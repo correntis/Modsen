@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Library.API.Contracts;
+using Library.Core.Constants;
 using Library.Core.Models;
 
 namespace Library.API.Validation
@@ -17,14 +18,14 @@ namespace Library.API.Validation
             RuleFor(l => l.Password)
                 .NotNull()
                 .NotEmpty()
-                .MinimumLength(User.MIN_PASSWORD_LENGTH)
-                .MaximumLength(User.MAX_PASSWORD_LENGTH)
+                .MinimumLength(UserConstants.MIN_PASSWORD_LENGTH)
+                .MaximumLength(UserConstants.MAX_PASSWORD_LENGTH)
                 .WithMessage("Password to short.");
             
             RuleFor(l => l.UserName)
                 .NotNull()
                 .NotEmpty()
-                .MaximumLength(User.MAX_USERNAME_LENGTH); 
+                .MaximumLength(UserConstants.MAX_USERNAME_LENGTH); 
         }
     }
 }
