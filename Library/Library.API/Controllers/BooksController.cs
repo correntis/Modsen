@@ -1,13 +1,10 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Library.API.Contracts;
-using Library.API.Validation;
-using Library.Core.Abstractions;
-using Library.Core.Exceptions;
+using Library.Application.UseCases.Books;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace Library.API.Controllers
 {
@@ -15,22 +12,47 @@ namespace Library.API.Controllers
     [Route("api/v1/books")]
     public class BooksController : ControllerBase
     {
-        private readonly ILogger<BooksController> _logger;
-        private readonly IBooksService _booksService;
-        private readonly IMapper _mapper;
         private readonly IValidator<BookContract> _booksValidator;
+        private readonly IMapper _mapper;
+
+        private readonly AddBookUseCase _addBookUseCase;
+        private readonly AddBookAuthorUseCase _addBookAuthorUseCase;
+        private readonly UpdateBookUseCase _updateBookUseCase;
+        private readonly DeleteBookUseCase _deleteBookUseCase;
+        private readonly DeleteBookAuthorUseCase _deleteBookAuthorUseCase;
+        private readonly GetBookUseCase _getBookUseCase;
+        private readonly GetBookByAuthorUseCase _getBookByAuthorUseCase;
+        private readonly GetAllBooksUseCase _getAllBooksUseCase;
+        private readonly GetBooksPageUseCase _getBooksPageUseCase;
+        private readonly GetBooksAmountUseCase _getBooksAmountUseCase;
 
         public BooksController(
-            ILogger<BooksController> logger,
-            IBooksService booksService,
+            IValidator<BookContract> booksValidator,
             IMapper mapper,
-            IValidator<BookContract> booksValidator
+            AddBookUseCase addBookUseCase,
+            AddBookAuthorUseCase addBookAuthorUseCase,
+            UpdateBookUseCase updateBookUseCase,
+            DeleteBookUseCase deleteBookUseCase,
+            DeleteBookAuthorUseCase deleteBookAuthorUseCase,
+            GetBookUseCase getBookUseCase,
+            GetBookByAuthorUseCase getBookByAuthorUseCase,
+            GetAllBooksUseCase getAllBooksUseCase,
+            GetBooksPageUseCase getBooksPageUseCase,
+            GetBooksAmountUseCase getBooksAmountUseCase
             )
         {
-            _logger = logger;
-            _booksService = booksService;
-            _mapper = mapper;
             _booksValidator = booksValidator;
+            _mapper = mapper;
+            _addBookUseCase = addBookUseCase;
+            _addBookAuthorUseCase = addBookAuthorUseCase;
+            _updateBookUseCase = updateBookUseCase;
+            _deleteBookUseCase = deleteBookUseCase;
+            _deleteBookAuthorUseCase = deleteBookAuthorUseCase;
+            _getBookUseCase = getBookUseCase;
+            _getBookByAuthorUseCase = getBookByAuthorUseCase;
+            _getAllBooksUseCase = getAllBooksUseCase;
+            _getBooksPageUseCase = getBooksPageUseCase;
+            _getBooksAmountUseCase = getBooksAmountUseCase;
         }
 
 
@@ -42,14 +64,14 @@ namespace Library.API.Controllers
 
             var book = _mapper.Map<Book>(bookContract);
             
-            return Ok(await _booksService.AddAsync(book));
+            return Ok(await _addBookUseCase.ExecuteAsync(book));
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> AddAuthor(Guid bookId, Guid authorId)
         {
-            await _booksService.AddAuthorAsync(bookId, authorId);
+            await _addBookAuthorUseCase.ExecuteAsync(bookId, authorId);
             return Ok();
         }
 
@@ -62,7 +84,7 @@ namespace Library.API.Controllers
             var book = _mapper.Map<Book>(bookContract);
             book.Id = id;
             
-            await _booksService.UpdateAsync(book);
+            await _updateBookUseCase.ExecuteAsync(book);
             return Ok();
         }
 
@@ -70,7 +92,7 @@ namespace Library.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _booksService.DeleteAsync(id);
+            await _deleteBookUseCase.ExecuteAsync(id);
             return Ok();
         }
 
@@ -78,38 +100,38 @@ namespace Library.API.Controllers
         [HttpDelete("{bookId}/authors/{authorId}")]
         public async Task<IActionResult> DeleteAuthor(Guid bookId, Guid authorId)
         {
-            await _booksService.DeleteAuthorAsync(bookId, authorId);
+            await _deleteBookAuthorUseCase.ExecuteAsync(bookId, authorId);
             return Ok();
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            return Ok(await _booksService.GetAsync(id));
+            return Ok(await _getBookUseCase.ExecuteAsync(id));
         }
 
         [HttpGet("authors/{authorId}")]
         public async Task<IActionResult> GetByAuthor(Guid authorId)
         {
-            return Ok(await _booksService.GetByAuthorAsync(authorId));
+            return Ok(await _getBookByAuthorUseCase.ExecuteAsync(authorId));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _booksService.GetAllAsync());
+            return Ok(await _getAllBooksUseCase.ExecuteAsync());
         }
 
         [HttpGet("pages")]
         public async Task<IActionResult> GetPage(int pageIndex, int pageSize, [FromQuery] BooksFilter filter)
         {
-            return Ok(await _booksService.GetPageAsync(pageIndex, pageSize, filter));
+            return Ok(await _getBooksPageUseCase.ExecuteAsync(pageIndex, pageSize, filter));
         }
 
         [HttpGet("amount")]
         public async Task<IActionResult> GetBooksAmount([FromQuery] BooksFilter filter)
         {
-            return Ok(await _booksService.GetAmountAsync(filter));
+            return Ok(await _getBooksAmountUseCase.ExecuteAsync(filter));
         }
     }
 }

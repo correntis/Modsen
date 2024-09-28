@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Library.API.Contracts;
-using Library.API.Validation;
-using Library.Core.Abstractions;
+using Library.Application.UseCases.Users;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace Library.API.Controllers
 {
@@ -14,26 +12,39 @@ namespace Library.API.Controllers
     [Route("api/v1/users")]
     public class UsersController : ControllerBase
     {
-        private readonly IUsersService _usersService;
-        private readonly IMapper _mapper;
         private readonly IValidator<UserContract> _usersValidator;
+        private readonly IMapper _mapper;
 
-        public UsersController( 
-            IUsersService usersService,
+        private readonly IssueUserBookUseCase _issueUserBookUseCase;
+        private readonly UpdateUserUseCase _updateUserUseCase;
+        private readonly DeleteUserUseCase _deleteUserUseCase;
+        private readonly DeleteUserBookUseCase _deleteUserBookUseCase;
+        private readonly GetUserUseCase _getUserUseCase;
+
+        public UsersController(
+            IValidator<UserContract> usersValidator,
             IMapper mapper,
-            IValidator<UserContract> usersValidator
+            IssueUserBookUseCase issueUserBookUseCase,
+            UpdateUserUseCase updateUserUseCase,
+            DeleteUserUseCase deleteUserUseCase,
+            DeleteUserBookUseCase deleteUserBookUseCase,
+            GetUserUseCase getUserUseCase
             )
         {
-            _usersService = usersService;
-            _mapper = mapper;
             _usersValidator = usersValidator;
+            _mapper = mapper;
+            _issueUserBookUseCase = issueUserBookUseCase;
+            _updateUserUseCase = updateUserUseCase;
+            _deleteUserUseCase = deleteUserUseCase;
+            _deleteUserBookUseCase = deleteUserBookUseCase;
+            _getUserUseCase = getUserUseCase;
         }
 
         [HttpPut("{userId}/books/{bookId}")]
         [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> AddBook(Guid userId, Guid bookId)
+        public async Task<IActionResult> IssueBook(Guid userId, Guid bookId)
         {
-            await _usersService.IssueBookAsync(userId, bookId);
+            await _issueUserBookUseCase.ExecuteAsync(userId, bookId);
             return Ok();
         }
 
@@ -46,7 +57,7 @@ namespace Library.API.Controllers
             var user = _mapper.Map<User>(userContract);
             user.Id = id;
 
-            await _usersService.UpdateAsync(user);
+            await _updateUserUseCase.ExecuteAsync(user);
             return Ok();
         }
 
@@ -54,7 +65,7 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _usersService.DeleteAsync(id);
+            await _deleteUserUseCase.ExecuteAsync(id);
             return Ok();
         }
 
@@ -62,7 +73,7 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> DeleteBook(Guid userId, Guid bookId)
         {
-            await _usersService.DeleteBookAsync(userId, bookId);
+            await _deleteUserBookUseCase.ExecuteAsync(userId, bookId);
             return Ok();
         }
 
@@ -70,7 +81,7 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Get(Guid userId)
         {
-            return Ok(await _usersService.GetAsync(userId));
+            return Ok(await _getUserUseCase.ExecuteAsync(userId));
         }
     }
 }

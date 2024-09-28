@@ -12,6 +12,7 @@ namespace Library.Core.Models
         public DateTime TakenAt { get; set; }
         public DateTime ReturnBy { get; set; }
         public IFormFile ImageFile { get; set; }
+        public string ImagePath { get; set; }
         public ICollection<Author> Authors { get; set; } = [];
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Library.API.Contracts;
+using Library.Application.UseCases.Auth;
 using Library.Core.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,19 +10,23 @@ namespace Library.API.Controllers
     [Route("api/v1/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
         private readonly IValidator<RegisterContract> _registerValidator;
         private readonly IValidator<LoginContract> _loginValidator;
 
+        private readonly RegisterUserUseCase _registerUserUseCase;
+        private readonly LoginUserUseCase _loginUserUseCase;
+
         public AuthController(
-            IAuthService authService,
             IValidator<RegisterContract> registerValidator,
-            IValidator<LoginContract> loginValidator
+            IValidator<LoginContract> loginValidator,
+            RegisterUserUseCase registerUserUseCase,
+            LoginUserUseCase loginUserUseCase
             )
         {
-            _authService = authService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
+            _registerUserUseCase = registerUserUseCase;
+            _loginUserUseCase = loginUserUseCase;
         }
 
         [HttpPost("register")]
@@ -29,7 +34,7 @@ namespace Library.API.Controllers
         {
             await _registerValidator.ValidateAndThrowAsync(model);
 
-            var userTokens = await _authService.Register(model.UserName, model.Email, model.Password);
+            var userTokens = await _registerUserUseCase.ExecuteAsync(model.UserName, model.Email, model.Password);
 
             AppendCookies("accessToken", userTokens.AccessToken);
             AppendCookies("refreshToken", userTokens.RefreshToken);
@@ -42,7 +47,7 @@ namespace Library.API.Controllers
         {
             await _loginValidator.ValidateAndThrowAsync(model);
 
-            var (user, userTokens) = await _authService.Login(model.Email,model.Password);
+            var (user, userTokens) = await _loginUserUseCase.ExecuteAsync(model.Email,model.Password);
 
             AppendCookies("accessToken", userTokens.AccessToken);           
             AppendCookies("refreshToken", userTokens.RefreshToken);

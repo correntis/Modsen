@@ -6,9 +6,6 @@ using Library.API.Extensions;
 using Library.Application.Services;
 using Library.Core.Configuration;
 using Library.API.Middleware;
-using FluentValidation;
-using Library.API.Contracts;
-using Library.API.Validation;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +20,6 @@ else // Wait for database container to start
 {
     await Task.Delay(2000);
 }
-
 
 configuration
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -58,15 +54,10 @@ services.AddStackExchangeRedisCache(options =>
 
 services.AddAuthentication(configuration);
 
-services.AddScoped<IBooksRepository, BooksRepository>();
-services.AddScoped<IAuthorsRepository, AuthorsRepository>();
-services.AddScoped<IUsersRepository, UsersRepository>();
-services.AddScoped<IUnitOfWork, UnitOfWork>();
+services.AddUseCases();
+services.AddRepositories();
+services.AddValidators();
 
-services.AddScoped<IBooksService, BooksService>();
-services.AddScoped<IAuthorsService, AuthorsService>();
-services.AddScoped<IUsersService, UsersService>();
-services.AddScoped<IAuthService, AuthService>();
 services.AddScoped<ITokenService, TokenService>();
 services.AddScoped<ITokenCacheService, TokenCacheService>();
 services.AddScoped<IFileService, FileService>();
@@ -75,16 +66,9 @@ services.AddScoped<IRefreshTokenHandler, RefreshTokenHandler>();
 services.AddScoped<ExceptionMiddleware>();
 services.AddScoped<AuthenticationMiddleware>();
 
-services.AddScoped<IValidator<UserContract>, UserValidator>();
-services.AddScoped<IValidator<BookContract>, BookValidator>();
-services.AddScoped<IValidator<AuthorContract>, AuthorValidator>();
-services.AddScoped<IValidator<LoginContract>, LoginValidator>();
-services.AddScoped<IValidator<RegisterContract>, RegisterValidator>();
-
-
 var app = builder.Build();
 
-using(var scope = app.Services.CreateScope())
+using(var scope = app.Services.CreateScope()) // Seed default data
 {
     if(configuration["SEED_ON_START"] == "true")
     {

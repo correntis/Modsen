@@ -5,23 +5,46 @@ using Library.Core.Abstractions;
 using Library.Core.Entities;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Http;
+using Library.Application.UseCases.Books;
 
 namespace Library.Tests.Unit
 {
-    public class BooksServiceTests
+    public class BooksUseCasesTests
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IFileService> _fileServiceMock;
-        private readonly BooksService _booksService;
 
-        public BooksServiceTests()
+        private readonly AddBookUseCase _addBookUseCase;
+        private readonly AddBookAuthorUseCase _addBookAuthorUseCase;
+        private readonly UpdateBookUseCase _updateBookUseCase;
+        private readonly DeleteBookUseCase _deleteBookUseCase;
+        private readonly DeleteBookAuthorUseCase _deleteBookAuthorUseCase;
+        private readonly GetBookUseCase _getBookUseCase;
+        private readonly GetBookByAuthorUseCase _getBookByAuthorUseCase;
+        private readonly GetBookByIsbnUseCase _getBookByIsbnUseCase;
+        private readonly GetAllBooksUseCase _getAllBooksUseCase;
+        private readonly GetBooksPageUseCase _getBooksPageUseCase;
+        private readonly GetBooksAmountUseCase _getBooksAmountUseCase;
+
+        public BooksUseCasesTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _mapperMock = new Mock<IMapper>();
             _fileServiceMock = new Mock<IFileService>();
 
-            _booksService = new BooksService(_unitOfWorkMock.Object, _mapperMock.Object, _fileServiceMock.Object);
+            _addBookUseCase = new AddBookUseCase(_unitOfWorkMock.Object, _mapperMock.Object, _fileServiceMock.Object);
+            _addBookAuthorUseCase= new AddBookAuthorUseCase(_unitOfWorkMock.Object, _mapperMock.Object);
+            _updateBookUseCase = new UpdateBookUseCase(_unitOfWorkMock.Object, _mapperMock.Object, _fileServiceMock.Object);
+            _deleteBookUseCase = new DeleteBookUseCase(_unitOfWorkMock.Object);
+            _deleteBookAuthorUseCase = new DeleteBookAuthorUseCase(_unitOfWorkMock.Object, _mapperMock.Object);
+            _getBookUseCase = new GetBookUseCase(_unitOfWorkMock.Object, _mapperMock.Object);
+            _getBookByAuthorUseCase = new GetBookByAuthorUseCase(_unitOfWorkMock.Object, _mapperMock.Object);
+            _getBookByIsbnUseCase = new GetBookByIsbnUseCase(_unitOfWorkMock.Object, _mapperMock.Object);
+            _getAllBooksUseCase = new GetAllBooksUseCase(_unitOfWorkMock.Object, _mapperMock.Object);
+            _getBooksPageUseCase = new GetBooksPageUseCase(_unitOfWorkMock.Object, _mapperMock.Object);
+            _getBooksAmountUseCase = new GetBooksAmountUseCase(_unitOfWorkMock.Object);
+
         }
 
         [Fact]
@@ -37,7 +60,7 @@ namespace Library.Tests.Unit
             _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            var result = await _booksService.AddAsync(book);
+            var result = await _addBookUseCase.ExecuteAsync(book);
 
             // Assert
             Assert.Equal(bookEntity.Id, result);
@@ -60,7 +83,7 @@ namespace Library.Tests.Unit
             _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            await _booksService.AddAuthorAsync(bookId, authorId);
+            await _addBookAuthorUseCase.ExecuteAsync(bookId, authorId);
 
             // Assert
             Assert.Contains(authorEntity, bookEntity.Authors);
@@ -79,7 +102,7 @@ namespace Library.Tests.Unit
             _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            await _booksService.UpdateAsync(book);
+            await _updateBookUseCase.ExecuteAsync(book);
 
             // Assert
             Assert.Equal(book.Name, bookEntity.Name);
@@ -100,7 +123,7 @@ namespace Library.Tests.Unit
             _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            await _booksService.DeleteAsync(bookId);
+            await _deleteBookUseCase.ExecuteAsync(bookId);
 
             // Assert
             _unitOfWorkMock.Verify(u => u.BooksRepository.Delete(bookEntity), Times.Once);
@@ -121,7 +144,7 @@ namespace Library.Tests.Unit
             _unitOfWorkMock.Setup(u => u.SaveChangesAsync()).Returns(Task.CompletedTask);
 
             // Act
-            await _booksService.DeleteAuthorAsync(bookId, authorId);
+            await _deleteBookAuthorUseCase.ExecuteAsync(bookId, authorId);
 
             // Assert
             Assert.DoesNotContain(authorEntity, bookEntity.Authors);
@@ -134,15 +157,18 @@ namespace Library.Tests.Unit
             // Arrange
             var bookId = Guid.NewGuid();
             var bookEntity = new BookEntity { Id = bookId };
+            var bookModel = new Book { Id = bookId };
 
             _unitOfWorkMock.Setup(u => u.BooksRepository.GetAsync(bookId)).ReturnsAsync(bookEntity);
+            _mapperMock.Setup(m => m.Map<Book>(bookEntity)).Returns(bookModel);
 
             // Act
-            var result = await _booksService.GetAsync(bookId);
+            var result = await _getBookUseCase.ExecuteAsync(bookId);
 
             // Assert
-            Assert.Equal(bookEntity, result);
+            Assert.Equal(bookModel, result);
         }
+
 
         [Fact]
         public async Task GetByIsbnAsync_ShouldReturnBookByIsbn()
@@ -150,15 +176,18 @@ namespace Library.Tests.Unit
             // Arrange
             var isbn = "123456";
             var bookEntity = new BookEntity { ISBN = isbn };
+            var bookModel = new Book { ISBN = isbn };
 
             _unitOfWorkMock.Setup(u => u.BooksRepository.GetByIsbnAsync(isbn)).ReturnsAsync(bookEntity);
+            _mapperMock.Setup(m => m.Map<Book>(bookEntity)).Returns(bookModel);
 
             // Act
-            var result = await _booksService.GetByIsbnAsync(isbn);
+            var result = await _getBookByIsbnUseCase.ExecuteAsync(isbn);
 
             // Assert
-            Assert.Equal(bookEntity, result);
+            Assert.Equal(bookModel, result);
         }
+
 
         [Fact]
         public async Task GetByAuthorAsync_ShouldReturnBookByAuthorId()
@@ -166,30 +195,44 @@ namespace Library.Tests.Unit
             // Arrange
             var authorId = Guid.NewGuid();
             var bookEntity = new BookEntity { Authors = new List<AuthorEntity> { new AuthorEntity { Id = authorId } } };
+            var bookModel = new Book { Authors = new List<Author> { new Author { Id = authorId } } };
 
             _unitOfWorkMock.Setup(u => u.BooksRepository.GetByAuthorAsync(authorId)).ReturnsAsync(bookEntity);
+            _mapperMock.Setup(m => m.Map<Book>(bookEntity)).Returns(bookModel);
 
             // Act
-            var result = await _booksService.GetByAuthorAsync(authorId);
+            var result = await _getBookByAuthorUseCase.ExecuteAsync(authorId);
 
             // Assert
-            Assert.Equal(bookEntity, result);
+            Assert.Equal(bookModel, result);
         }
+
 
         [Fact]
         public async Task GetAllAsync_ShouldReturnAllBooks()
         {
             // Arrange
-            var books = new List<BookEntity> { new BookEntity { Id = Guid.NewGuid() }, new BookEntity { Id = Guid.NewGuid() } };
+            var booksEntities = new List<BookEntity>
+            {
+                new() { Id = Guid.NewGuid() },
+                new() { Id = Guid.NewGuid() }
+            };
+            var booksModels = new List<Book>
+            {
+                new() { Id = booksEntities[0].Id },
+                new() { Id = booksEntities[1].Id }
+            };
 
-            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAllAsync()).ReturnsAsync(books);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetAllAsync()).ReturnsAsync(booksEntities);
+            _mapperMock.Setup(m => m.Map<List<Book>>(booksEntities)).Returns(booksModels);
 
             // Act
-            var result = await _booksService.GetAllAsync();
+            var result = await _getAllBooksUseCase.ExecuteAsync();
 
             // Assert
-            Assert.Equal(books, result);
+            Assert.Equal(booksModels, result);
         }
+
 
         [Fact]
         public async Task GetPageAsync_ShouldReturnPagedBooks()
@@ -198,16 +241,25 @@ namespace Library.Tests.Unit
             var pageIndex = 1;
             var pageSize = 10;
             var filter = new BooksFilter();
-            var books = new List<BookEntity> { new BookEntity { Id = Guid.NewGuid() } };
+            var booksEntities = new List<BookEntity>
+            {
+                new() { Id = Guid.NewGuid() }
+            };
+            var booksModels = new List<Book>
+            {
+                new() { Id = booksEntities[0].Id }
+            };
 
-            _unitOfWorkMock.Setup(u => u.BooksRepository.GetPageAsync(pageIndex, pageSize, filter)).ReturnsAsync(books);
+            _unitOfWorkMock.Setup(u => u.BooksRepository.GetPageAsync(pageIndex, pageSize, filter)).ReturnsAsync(booksEntities);
+            _mapperMock.Setup(m => m.Map<List<Book>>(booksEntities)).Returns(booksModels);
 
             // Act
-            var result = await _booksService.GetPageAsync(pageIndex, pageSize, filter);
+            var result = await _getBooksPageUseCase.ExecuteAsync(pageIndex, pageSize, filter);
 
             // Assert
-            Assert.Equal(books, result);
+            Assert.Equal(booksModels, result);
         }
+
 
         [Fact]
         public async Task GetAmountAsync_ShouldReturnBooksCount()
@@ -219,7 +271,7 @@ namespace Library.Tests.Unit
             _unitOfWorkMock.Setup(u => u.BooksRepository.GetAmountAsync(filter)).ReturnsAsync(count);
 
             // Act
-            var result = await _booksService.GetAmountAsync(filter);
+            var result = await _getBooksAmountUseCase.ExecuteAsync(filter);
 
             // Assert
             Assert.Equal(count, result);

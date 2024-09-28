@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Library.API.Contracts;
+using Library.Application.UseCases.Authors;
 using Library.Core.Abstractions;
 using Library.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -12,22 +13,35 @@ namespace Library.API.Controllers
     [Route("api/v1/authors")]
     public class AuthorsController : ControllerBase
     {
-        private readonly ILogger<AuthorsController> _logger;
-        private readonly IAuthorsService _authorsService;
-        private readonly IMapper _mapper;
         private readonly IValidator<AuthorContract> _authorValidator;
+        private readonly IMapper _mapper;
+
+        private readonly AddAuthorUseCase _addAuthorUseCase;
+        private readonly UpdateAuthorUseCase _updateAuthorUseCase;
+        private readonly DeleteAuthorUseCase _deleteAuthorUseCase;
+        private readonly GetAuthorUseCase _getAuthorUseCase;
+        private readonly GetAllAuthorsUseCase _getAllAuthorsUseCase;
+        private readonly GetAuthorsPageUseCase _getAuthorsPageUseCase;
 
         public AuthorsController(
-            ILogger<AuthorsController> logger,
-            IAuthorsService authorsService,
+            IValidator<AuthorContract> authorValidator,
             IMapper mapper,
-            IValidator<AuthorContract> authorValidator
+            AddAuthorUseCase addAuthorUseCase,
+            UpdateAuthorUseCase updateAuthorUseCase,
+            DeleteAuthorUseCase deleteAuthorUseCase,
+            GetAuthorUseCase getAuthorUseCase,
+            GetAllAuthorsUseCase getAllAuthorsUseCase,
+            GetAuthorsPageUseCase getAuthorsPageUseCase
             )
         {
-            _logger = logger;
-            _authorsService = authorsService;
-            _mapper = mapper;
             _authorValidator = authorValidator;
+            _mapper = mapper;
+            _addAuthorUseCase = addAuthorUseCase;
+            _updateAuthorUseCase = updateAuthorUseCase;
+            _deleteAuthorUseCase = deleteAuthorUseCase;
+            _getAuthorUseCase = getAuthorUseCase;
+            _getAllAuthorsUseCase = getAllAuthorsUseCase;
+            _getAuthorsPageUseCase = getAuthorsPageUseCase;
         }
 
         [HttpPost]
@@ -38,7 +52,7 @@ namespace Library.API.Controllers
 
             var author = _mapper.Map<Author>(authorContract);
 
-            return Ok(await _authorsService.AddAsync(author));
+            return Ok(await _addAuthorUseCase.ExecuteAsync(author));
         }
 
         [HttpPut("{id}")]
@@ -50,7 +64,7 @@ namespace Library.API.Controllers
             var author = _mapper.Map<Author>(authorContract);
             author.Id = id;
 
-            await _authorsService.UpdateAsync(author);
+            await _updateAuthorUseCase.ExecuteAsync(author);
             return Ok();
         }
 
@@ -58,26 +72,26 @@ namespace Library.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _authorsService.DeleteAsync(id);
+            await _deleteAuthorUseCase.ExecuteAsync(id);
             return Ok();
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            return Ok(await _authorsService.GetAsync(id));
+            return Ok(await _getAuthorUseCase.ExecuteAsync(id));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _authorsService.GetAllAsync());
+            return Ok(await _getAllAuthorsUseCase.ExecuteAsync());
         }
 
         [HttpGet("page")]
         public async Task<IActionResult> GetPage(int pageIndex, int pageSize)
         {
-            return Ok(await _authorsService.GetPageAsync(pageIndex, pageSize));
+            return Ok(await _getAuthorsPageUseCase.ExecuteAsync(pageIndex, pageSize));
         }
     }
 }
